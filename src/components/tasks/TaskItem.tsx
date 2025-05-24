@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
@@ -71,33 +71,89 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     dispatch(toggleTaskStar(task.id));
   };
   
-  // Render right actions for swipeable (delete)
-  const renderRightActions = () => {
+  // Render right actions for swipeable (delete) - with fade animation
+  const renderRightActions = (progress: Animated.AnimatedAddition<number>, dragX: Animated.AnimatedAddition<number>) => {
+    const trans = dragX.interpolate({
+      inputRange: [-100, -50, 0],
+      outputRange: [0, 50, 100],
+      extrapolate: 'clamp',
+    });
+    
+    const scale = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+    
+    const opacity = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+    
     return (
-      <TouchableOpacity
-        style={[
-          styles.rightAction,
-          { backgroundColor: theme.colors_extended.danger[theme.dark ? 'dark' : 'light'] }
-        ]}
-        onPress={() => onDelete(task.id)}
-      >
-        <Text style={styles.actionText}>Delete</Text>
-      </TouchableOpacity>
+      <View style={styles.actionContainer}>
+        <Animated.View
+          style={[
+            styles.rightAction,
+            { 
+              backgroundColor: theme.colors_extended.danger[theme.dark ? 'dark' : 'light'],
+              borderRadius: theme.borderRadius.md,
+              transform: [{ translateX: trans }, { scale }],
+              opacity,
+            }
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onDelete(task.id)}
+          >
+            <Ionicons name="trash-outline" size={20} color="white" />
+            <Text style={styles.actionText}>Delete</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
     );
   };
   
-  // Render left actions for swipeable (edit)
-  const renderLeftActions = () => {
+  // Render left actions for swipeable (edit) - with fade animation
+  const renderLeftActions = (progress: Animated.AnimatedAddition<number>, dragX: Animated.AnimatedAddition<number>) => {
+    const trans = dragX.interpolate({
+      inputRange: [0, 50, 100],
+      outputRange: [-100, -50, 0],
+      extrapolate: 'clamp',
+    });
+    
+    const scale = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+    
+    const opacity = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+    
     return (
-      <TouchableOpacity
-        style={[
-          styles.leftAction,
-          { backgroundColor: theme.colors_extended.info[theme.dark ? 'dark' : 'light'] }
-        ]}
-        onPress={() => onEdit(task)}
-      >
-        <Text style={styles.actionText}>Edit</Text>
-      </TouchableOpacity>
+      <View style={styles.actionContainer}>
+        <Animated.View
+          style={[
+            styles.leftAction,
+            { 
+              backgroundColor: theme.colors_extended.info[theme.dark ? 'dark' : 'light'],
+              borderRadius: theme.borderRadius.md,
+              transform: [{ translateX: trans }, { scale }],
+              opacity,
+            }
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onEdit(task)}
+          >
+            <Ionicons name="pencil-outline" size={20} color="white" />
+            <Text style={styles.actionText}>Edit</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
     );
   };
   
@@ -169,6 +225,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     <Swipeable
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
+      rightThreshold={40}
+      leftThreshold={40}
     >
       <Card style={dynamicStyles.container}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
@@ -214,20 +272,53 @@ export const TaskItem: React.FC<TaskItemProps> = ({
 };
 
 const styles = StyleSheet.create({
+  actionContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
   rightAction: {
     justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
-    marginBottom: 8,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginVertical: 4,
+    minWidth: 80,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   leftAction: {
     justifyContent: 'center',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    marginBottom: 8,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginVertical: 4,
+    minWidth: 80,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  actionButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+    width: '100%',
   },
   actionText: {
     color: 'white',
     fontWeight: '600',
+    fontSize: 12,
+    marginTop: 4,
   },
 });

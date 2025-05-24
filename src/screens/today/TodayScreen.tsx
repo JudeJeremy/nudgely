@@ -86,8 +86,8 @@ export const TodayScreen: React.FC = () => {
     );
   };
   
-  // Get tasks and habits for the selected date
-  const getTodayItems = (): TodayItem[] => {
+  // Get tasks for the selected date
+  const getTodayTasks = (): TodayItem[] => {
     const items: TodayItem[] = [];
     const selectedDateString = selectedDate.toISOString().split('T')[0];
     
@@ -110,6 +110,19 @@ export const TodayScreen: React.FC = () => {
       }
     });
     
+    // Sort by completion status (incomplete first)
+    return items.sort((a, b) => {
+      if (a.completed !== b.completed) {
+        return a.completed ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+  
+  // Get habits for the selected date
+  const getTodayHabits = (): TodayItem[] => {
+    const items: TodayItem[] = [];
+    
     // Add habits scheduled for today
     habits.forEach((habit) => {
       if (isHabitScheduledForDate(habit, selectedDate)) {
@@ -126,12 +139,12 @@ export const TodayScreen: React.FC = () => {
       }
     });
     
-    // Sort by completion status (incomplete first), then by type
+    // Sort by completion status (incomplete first)
     return items.sort((a, b) => {
       if (a.completed !== b.completed) {
         return a.completed ? 1 : -1;
       }
-      return a.type.localeCompare(b.type);
+      return 0;
     });
   };
   
@@ -242,11 +255,38 @@ export const TodayScreen: React.FC = () => {
       flex: 1,
       padding: theme.spacing.md,
     },
-    sectionTitle: {
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: 'bold',
-      color: theme.colors.text,
+    sectionContainer: {
+      marginBottom: theme.spacing.lg,
+    },
+    sectionCard: {
+      padding: theme.spacing.md,
       marginBottom: theme.spacing.md,
+      backgroundColor: theme.dark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', // Subtle background different from items
+      borderWidth: 1,
+      borderColor: theme.dark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: theme.spacing.xs, // Much smaller margin
+    },
+    sectionTitle: {
+      fontSize: theme.typography.fontSize.sm, // Much smaller font size
+      fontWeight: '400', // Lighter weight
+      color: theme.colors.text,
+      opacity: 0.5, // Much more subtle
+      flex: 1,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    sectionCount: {
+      fontSize: 10, // Very small count
+      color: theme.colors.text,
+      opacity: 0.4,
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 4,
+      paddingVertical: 1,
+      borderRadius: 2,
     },
     itemContainer: {
       marginBottom: theme.spacing.sm,
@@ -307,12 +347,22 @@ export const TodayScreen: React.FC = () => {
       marginLeft: theme.spacing.sm,
     },
     emptyContainer: {
+      padding: theme.spacing.lg,
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text,
+      opacity: 0.7,
+      textAlign: 'center',
+    },
+    overallEmptyContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       padding: theme.spacing.xl,
     },
-    emptyText: {
+    overallEmptyText: {
       fontSize: theme.typography.fontSize.md,
       color: theme.colors.text,
       opacity: 0.7,
@@ -349,7 +399,7 @@ export const TodayScreen: React.FC = () => {
     );
   };
   
-  const renderTodayItem = (item: TodayItem) => {
+  const renderItem = (item: TodayItem) => {
     const borderColor = item.type === 'habit' ? item.color : theme.colors.primary;
     const checkboxColor = item.type === 'habit' ? item.color : theme.colors.primary;
     
@@ -428,7 +478,9 @@ export const TodayScreen: React.FC = () => {
     );
   };
   
-  const todayItems = getTodayItems();
+  const todayTasks = getTodayTasks();
+  const todayHabits = getTodayHabits();
+  const hasAnyItems = todayTasks.length > 0 || todayHabits.length > 0;
   
   return (
     <View style={dynamicStyles.container}>
@@ -451,16 +503,55 @@ export const TodayScreen: React.FC = () => {
       
       {/* Content */}
       <ScrollView style={dynamicStyles.contentContainer}>
-        {todayItems.length > 0 ? (
+        {hasAnyItems ? (
           <>
-            <Text style={dynamicStyles.sectionTitle}>
-              {todayItems.length} {todayItems.length === 1 ? 'item' : 'items'} for {formatDate(selectedDate)}
-            </Text>
-            {todayItems.map(renderTodayItem)}
+            {/* Tasks Section */}
+            <View style={dynamicStyles.sectionContainer}>
+              <Card style={dynamicStyles.sectionCard}>
+                <View style={dynamicStyles.sectionHeader}>
+                  <Text style={dynamicStyles.sectionTitle}>Tasks</Text>
+                  <Text style={dynamicStyles.sectionCount}>
+                    {todayTasks.length}
+                  </Text>
+                </View>
+                
+                {todayTasks.length > 0 ? (
+                  todayTasks.map(renderItem)
+                ) : (
+                  <View style={dynamicStyles.emptyContainer}>
+                    <Text style={dynamicStyles.emptyText}>
+                      No tasks scheduled for {formatDate(selectedDate)}
+                    </Text>
+                  </View>
+                )}
+              </Card>
+            </View>
+            
+            {/* Habits Section */}
+            <View style={dynamicStyles.sectionContainer}>
+              <Card style={dynamicStyles.sectionCard}>
+                <View style={dynamicStyles.sectionHeader}>
+                  <Text style={dynamicStyles.sectionTitle}>Habits</Text>
+                  <Text style={dynamicStyles.sectionCount}>
+                    {todayHabits.length}
+                  </Text>
+                </View>
+                
+                {todayHabits.length > 0 ? (
+                  todayHabits.map(renderItem)
+                ) : (
+                  <View style={dynamicStyles.emptyContainer}>
+                    <Text style={dynamicStyles.emptyText}>
+                      No habits scheduled for {formatDate(selectedDate)}
+                    </Text>
+                  </View>
+                )}
+              </Card>
+            </View>
           </>
         ) : (
-          <View style={dynamicStyles.emptyContainer}>
-            <Text style={dynamicStyles.emptyText}>
+          <View style={dynamicStyles.overallEmptyContainer}>
+            <Text style={dynamicStyles.overallEmptyText}>
               No tasks or habits scheduled for {formatDate(selectedDate)}
             </Text>
           </View>

@@ -7,6 +7,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "statusBar": {
+      "style": "auto",
+      "backgroundColor": "transparent",
+      "translucent": true
+    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -17,14 +22,22 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.nudgely"
+      "bundleIdentifier": "com.yourcompany.nudgely",
+      "statusBar": {
+        "style": "auto"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a7ea4"
       },
-      "package": "com.yourcompany.nudgely"
+      "package": "com.yourcompany.nudgely",
+      "statusBar": {
+        "style": "auto",
+        "backgroundColor": "transparent",
+        "translucent": true
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

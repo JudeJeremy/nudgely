@@ -34,7 +34,7 @@ export default function App() {
       <PersistGate loading={null} persistor={persistor}>
         <SafeAreaProvider>
           <AppNavigator />
-          <StatusBar style="auto" />
+          <StatusBar style="auto" translucent backgroundColor="transparent" />
         </SafeAreaProvider>
       </PersistGate>
     </Provider>
