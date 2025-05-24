@@ -27,9 +27,10 @@ export const TasksScreen: React.FC = () => {
     completed: false,
   });
   
-  // State for date picker
+  // State for date picker - simplified approach
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [tempDate, setTempDate] = useState<Date | null>(null); // Temporary date for iOS
   
   // State for filtering
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
@@ -118,9 +119,16 @@ export const TasksScreen: React.FC = () => {
     }
     
     // Reset form and close modal
+    resetForm();
+  };
+  
+  // Reset form helper
+  const resetForm = () => {
     setIsModalVisible(false);
     setIsEditing(false);
     setSelectedDate(null);
+    setTempDate(null);
+    setShowDatePicker(false);
     setCurrentTask({
       title: '',
       description: '',
@@ -134,6 +142,7 @@ export const TasksScreen: React.FC = () => {
   const handleAddTask = () => {
     setIsEditing(false);
     setSelectedDate(null);
+    setTempDate(null);
     setCurrentTask({
       title: '',
       description: '',
@@ -146,38 +155,62 @@ export const TasksScreen: React.FC = () => {
   
   // Handle canceling the form
   const handleCancelForm = () => {
-    setIsModalVisible(false);
-    setIsEditing(false);
-    setSelectedDate(null);
-    setCurrentTask({
-      title: '',
-      description: '',
-      category: 'Personal',
-      starred: false,
-      completed: false,
-    });
+    resetForm();
   };
   
-  // Handle date picker change
+  // Handle date picker change - Simplified for better iOS support
   const handleDateChange = (event: any, date?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
+      if (event.type === 'set' && date) {
+        setSelectedDate(date);
+      }
+      return;
     }
     
+    // iOS handling
     if (date) {
-      setSelectedDate(date);
+      setTempDate(date);
     }
   };
   
   // Handle date picker button press
   const handleDatePickerPress = () => {
+    // Close task modal temporarily on iOS to avoid nested modals
+    if (Platform.OS === 'ios') {
+      setIsModalVisible(false);
+    }
+    setTempDate(selectedDate || new Date());
     setShowDatePicker(true);
+  };
+  
+  // Handle iOS date picker done
+  const handleDatePickerDone = () => {
+    if (tempDate) {
+      setSelectedDate(tempDate);
+    }
+    setShowDatePicker(false);
+    setTempDate(null);
+    // Reopen task modal on iOS
+    if (Platform.OS === 'ios') {
+      setIsModalVisible(true);
+    }
+  };
+  
+  // Handle iOS date picker cancel
+  const handleDatePickerCancel = () => {
+    setShowDatePicker(false);
+    setTempDate(null);
+    // Reopen task modal on iOS
+    if (Platform.OS === 'ios') {
+      setIsModalVisible(true);
+    }
   };
   
   // Handle clear date
   const handleClearDate = () => {
     setSelectedDate(null);
-    setShowDatePicker(false);
+    setTempDate(null);
   };
   
   const dynamicStyles = StyleSheet.create({
@@ -312,6 +345,25 @@ export const TasksScreen: React.FC = () => {
     clearDateButton: {
       padding: theme.spacing.xs,
     },
+    datePickerModal: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    datePickerModalContent: {
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.lg,
+      margin: theme.spacing.lg,
+      minWidth: 300,
+      ...theme.shadows.lg,
+    },
+    datePickerModalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: theme.spacing.lg,
+    },
   });
   
   // Render empty state
@@ -444,7 +496,7 @@ export const TasksScreen: React.FC = () => {
       
       {/* Task Form Modal */}
       <Modal
-        visible={isModalVisible}
+        visible={isModalVisible && !showDatePicker}
         transparent
         animationType="fade"
         onRequestClose={handleCancelForm}
@@ -537,15 +589,54 @@ export const TasksScreen: React.FC = () => {
         </View>
       </Modal>
       
-      {/* Date Picker */}
+      {/* Date Picker Modal - Separate from task modal to avoid nesting issues */}
       {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDateChange}
-          minimumDate={new Date()}
-        />
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="slide"
+          onRequestClose={handleDatePickerCancel}
+        >
+          <View style={dynamicStyles.datePickerModal}>
+            <View style={dynamicStyles.datePickerModalContent}>
+              <Text style={[dynamicStyles.modalTitle, { textAlign: 'center', marginBottom: theme.spacing.lg }]}>
+                Select Due Date
+              </Text>
+              
+              {Platform.OS === 'ios' ? (
+                <DateTimePicker
+                  value={tempDate || new Date()}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                  style={{ height: 200 }}
+                />
+              ) : (
+                <DateTimePicker
+                  value={tempDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                />
+              )}
+              
+              <View style={dynamicStyles.datePickerModalButtons}>
+                <Button
+                  title="Cancel"
+                  onPress={handleDatePickerCancel}
+                  variant="outline"
+                />
+                <Button
+                  title="Done"
+                  onPress={handleDatePickerDone}
+                  variant="primary"
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
       </View>
     </View>
