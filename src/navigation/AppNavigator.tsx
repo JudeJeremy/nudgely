@@ -8,7 +8,6 @@ import { useTheme } from '../hooks/useTheme';
 // Import screens
 import { TasksScreen } from '../screens/tasks/TasksScreen';
 import { HabitsScreen } from '../screens/habits/HabitsScreen';
-import { TimerScreen } from '../screens/timer/TimerScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import { TodayScreen } from '../screens/today/TodayScreen';
 
@@ -33,13 +32,6 @@ const HabitsStack = () => {
   );
 };
 
-const TimerStack = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="TimerMain" component={TimerScreen} />
-    </Stack.Navigator>
-  );
-};
 
 const TodayStack = () => {
   return (
@@ -83,8 +75,6 @@ export const AppNavigator = () => {
               iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
             } else if (route.name === 'Habits') {
               iconName = focused ? 'calendar' : 'calendar-outline';
-            } else if (route.name === 'Timer') {
-              iconName = focused ? 'timer' : 'timer-outline';
             } else if (route.name === 'Settings') {
               iconName = focused ? 'settings' : 'settings-outline';
             }
@@ -96,7 +86,6 @@ export const AppNavigator = () => {
         <Tab.Screen name="Today" component={TodayStack} />
         <Tab.Screen name="Tasks" component={TasksStack} />
         <Tab.Screen name="Habits" component={HabitsStack} />
-        <Tab.Screen name="Timer" component={TimerStack} />
         <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
     </NavigationContainer>

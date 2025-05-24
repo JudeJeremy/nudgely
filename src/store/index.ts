@@ -6,7 +6,6 @@ import { persistStore, persistReducer } from 'redux-persist';
 
 import taskReducer from './slices/taskSlice';
 import habitReducer from './slices/habitSlice';
-import timerReducer from './slices/timerSlice';
 import settingsReducer from './slices/settingsSlice';
 
 // Configure persistence
@@ -19,7 +18,6 @@ const persistConfig = {
 const rootReducer = combineReducers({
   tasks: taskReducer,
   habits: habitReducer,
-  timer: timerReducer,
   settings: settingsReducer,
 });
 

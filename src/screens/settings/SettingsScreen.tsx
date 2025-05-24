@@ -390,17 +390,6 @@ export const SettingsScreen: React.FC = () => {
               />
             </View>
             
-            <View style={dynamicStyles.settingRow}>
-              <Text style={dynamicStyles.settingLabel}>Focus Timer Reminders</Text>
-              <Switch
-                value={settings.notifications.focusSessionReminders}
-                onValueChange={(value) =>
-                  handleNotificationSettingToggle(value, 'focusSessionReminders')
-                }
-                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
-                thumbColor={settings.notifications.focusSessionReminders ? '#fff' : '#f4f3f4'}
-              />
-            </View>
             
             <View style={dynamicStyles.settingRow}>
               <Text style={dynamicStyles.settingLabel}>Daily Summary</Text>

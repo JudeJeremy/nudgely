@@ -4,7 +4,6 @@ export interface NotificationSettings {
   enabled: boolean;
   taskReminders: boolean;
   habitReminders: boolean;
-  focusSessionReminders: boolean;
   dailySummary: boolean;
   dailySummaryTime: string; // HH:MM format
   motivationalMessages: boolean;
@@ -35,7 +34,6 @@ const initialState: SettingsState = {
     enabled: true,
     taskReminders: true,
     habitReminders: true,
-    focusSessionReminders: true,
     dailySummary: true,
     dailySummaryTime: '20:00', // 8:00 PM
     motivationalMessages: true,
