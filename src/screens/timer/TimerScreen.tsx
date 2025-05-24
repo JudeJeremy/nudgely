@@ -13,6 +13,7 @@ import {
 } from '../../store/slices/timerSlice';
 import { TimerCircle } from '../../components/timer/TimerCircle';
 import { Card } from '../../components/common/Card';
+import { Header } from '../../components/common/Header';
 import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 
@@ -184,19 +185,19 @@ export const TimerScreen: React.FC = () => {
   });
   
   return (
-    <ScrollView style={dynamicStyles.container}>
-      {/* Header */}
-      <View style={dynamicStyles.header}>
-        <Text style={dynamicStyles.title}>Focus Timer</Text>
-        <TouchableOpacity
-          style={dynamicStyles.settingsButton}
-          onPress={() => setShowSettings(!showSettings)}
-        >
-          <Text style={dynamicStyles.settingsButtonText}>
-            {showSettings ? 'Hide Settings' : 'Settings'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Header 
+        title="Focus Timer" 
+        subtitle={`${completedFocusSessions} sessions completed`}
+        rightComponent={
+          <TouchableOpacity onPress={() => setShowSettings(!showSettings)}>
+            <Text style={{ color: theme.colors.primary, fontSize: 16, fontWeight: '600' }}>
+              {showSettings ? 'Hide' : 'Settings'}
+            </Text>
+          </TouchableOpacity>
+        }
+      />
+      <ScrollView style={dynamicStyles.container}>
       
       {/* Session Info */}
       <View style={dynamicStyles.sessionInfo}>
@@ -309,6 +310,7 @@ export const TimerScreen: React.FC = () => {
           </Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };

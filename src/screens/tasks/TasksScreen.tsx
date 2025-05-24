@@ -7,6 +7,7 @@ import { TaskItem } from '../../components/tasks/TaskItem';
 import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 import { Card } from '../../components/common/Card';
+import { Header } from '../../components/common/Header';
 
 export const TasksScreen: React.FC = () => {
   const theme = useTheme();
@@ -100,6 +101,7 @@ export const TasksScreen: React.FC = () => {
           description: currentTask.description || '',
           category: currentTask.category || 'Personal',
           priority: (currentTask.priority as 'low' | 'medium' | 'high') || 'medium',
+          starred: false,
           completed: false,
           dueDate: currentTask.dueDate,
         })
@@ -343,11 +345,19 @@ export const TasksScreen: React.FC = () => {
   );
   
   return (
-    <View style={dynamicStyles.container}>
-      {/* Header */}
-      <View style={dynamicStyles.header}>
-        <Text style={dynamicStyles.title}>Tasks</Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Header 
+        title="Tasks" 
+        subtitle={`${tasks.length} total tasks`}
+        rightComponent={
+          <TouchableOpacity onPress={handleAddTask}>
+            <Text style={{ color: theme.colors.primary, fontSize: 16, fontWeight: '600' }}>
+              Add
+            </Text>
+          </TouchableOpacity>
+        }
+      />
+      <View style={dynamicStyles.container}>
       
       {/* Filters */}
       <View style={dynamicStyles.filterContainer}>
@@ -583,6 +593,7 @@ export const TasksScreen: React.FC = () => {
           </Card>
         </View>
       </Modal>
+      </View>
     </View>
   );
 };

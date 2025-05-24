@@ -9,6 +9,7 @@ import {
   resetSettings,
 } from '../../store/slices/settingsSlice';
 import { Card } from '../../components/common/Card';
+import { Header } from '../../components/common/Header';
 import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 import * as Calendar from 'expo-calendar';
@@ -296,11 +297,18 @@ export const SettingsScreen: React.FC = () => {
   };
   
   return (
-    <ScrollView style={dynamicStyles.container}>
-      {/* Header */}
-      <View style={dynamicStyles.header}>
-        <Text style={dynamicStyles.title}>Settings</Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Header 
+        title="Settings" 
+        rightComponent={
+          <TouchableOpacity onPress={handleResetSettings}>
+            <Text style={{ color: theme.colors_extended.danger[theme.dark ? 'dark' : 'light'], fontSize: 16, fontWeight: '600' }}>
+              Reset
+            </Text>
+          </TouchableOpacity>
+        }
+      />
+      <ScrollView style={dynamicStyles.container}>
       
       {/* Appearance Settings */}
       <Text style={dynamicStyles.sectionTitle}>Appearance</Text>
@@ -480,6 +488,7 @@ export const SettingsScreen: React.FC = () => {
       
       {/* App Version */}
       <Text style={dynamicStyles.versionText}>Nudgely v1.0.0</Text>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };

@@ -6,7 +6,8 @@ export interface Task {
   description?: string;
   completed: boolean;
   category: string;
-  priority: 'low' | 'medium' | 'high';
+  priority?: 'low' | 'medium' | 'high';
+  starred: boolean;
   dueDate?: string;
   createdAt: string;
 }
@@ -48,6 +49,12 @@ const taskSlice = createSlice({
         task.completed = !task.completed;
       }
     },
+    toggleTaskStar: (state, action: PayloadAction<string>) => {
+      const task = state.tasks.find((task) => task.id === action.payload);
+      if (task) {
+        task.starred = !task.starred;
+      }
+    },
     addCategory: (state, action: PayloadAction<string>) => {
       if (!state.categories.includes(action.payload)) {
         state.categories.push(action.payload);
@@ -64,6 +71,7 @@ export const {
   updateTask, 
   deleteTask, 
   toggleTaskCompletion,
+  toggleTaskStar,
   addCategory,
   deleteCategory
 } = taskSlice.actions;

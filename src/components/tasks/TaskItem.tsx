@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
-import { Task } from '../../store/slices/taskSlice';
+import { useAppDispatch } from '../../store';
+import { Task, toggleTaskStar } from '../../store/slices/taskSlice';
 import { Card } from '../common/Card';
 
 interface TaskItemProps {
@@ -19,6 +21,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onEdit,
 }) => {
   const theme = useTheme();
+  const dispatch = useAppDispatch();
   
   // Format the due date if it exists
   const formatDueDate = (dateString?: string) => {
@@ -48,6 +51,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   
   // Get priority color
   const getPriorityColor = () => {
+    if (!task.priority) return theme.colors.text;
+    
     switch (task.priority) {
       case 'high':
         return theme.colors_extended.danger[theme.dark ? 'dark' : 'light'];
@@ -75,6 +80,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       default:
         return theme.colors_extended.categories.other[theme.dark ? 'dark' : 'light'];
     }
+  };
+  
+  // Handle star toggle
+  const handleStarToggle = () => {
+    dispatch(toggleTaskStar(task.id));
   };
   
   // Render right actions for swipeable (delete)
@@ -171,6 +181,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     contentContainer: {
       flex: 1,
     },
+    starButton: {
+      padding: theme.spacing.xs,
+      marginLeft: theme.spacing.sm,
+    },
   });
   
   return (
@@ -201,13 +215,26 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 </Text>
               )}
               
-              <Text style={dynamicStyles.priority}>
-                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-              </Text>
+              {task.priority && (
+                <Text style={dynamicStyles.priority}>
+                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                </Text>
+              )}
               
               <Text style={dynamicStyles.category}>{task.category}</Text>
             </View>
           </View>
+          
+          <TouchableOpacity
+            style={dynamicStyles.starButton}
+            onPress={handleStarToggle}
+          >
+            <Ionicons
+              name={task.starred ? 'star' : 'star-outline'}
+              size={20}
+              color={task.starred ? theme.colors_extended.warning[theme.dark ? 'dark' : 'light'] : theme.colors.text}
+            />
+          </TouchableOpacity>
         </View>
       </Card>
     </Swipeable>

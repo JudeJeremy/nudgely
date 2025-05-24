@@ -7,6 +7,7 @@ import { HabitItem } from '../../components/habits/HabitItem';
 import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 import { Card } from '../../components/common/Card';
+import { Header } from '../../components/common/Header';
 
 export const HabitsScreen: React.FC = () => {
   const theme = useTheme();
@@ -528,11 +529,19 @@ export const HabitsScreen: React.FC = () => {
   ];
   
   return (
-    <View style={dynamicStyles.container}>
-      {/* Header */}
-      <View style={dynamicStyles.header}>
-        <Text style={dynamicStyles.title}>Habits</Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Header 
+        title="Habits" 
+        subtitle={`${habits.length} total habits`}
+        rightComponent={
+          <TouchableOpacity onPress={handleAddHabit}>
+            <Text style={{ color: theme.colors.primary, fontSize: 16, fontWeight: '600' }}>
+              Add
+            </Text>
+          </TouchableOpacity>
+        }
+      />
+      <View style={dynamicStyles.container}>
       
       {/* Filters */}
       <View style={dynamicStyles.filterContainer}>
@@ -775,6 +784,7 @@ export const HabitsScreen: React.FC = () => {
           </Card>
         </View>
       </Modal>
+      </View>
     </View>
   );
 };
