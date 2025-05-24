@@ -9,6 +9,7 @@ import { useTheme } from '../hooks/useTheme';
 import { TasksScreen } from '../screens/tasks/TasksScreen';
 import { HabitsScreen } from '../screens/habits/HabitsScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
+import { NotificationTestScreen } from '../screens/settings/NotificationTestScreen';
 import { TodayScreen } from '../screens/today/TodayScreen';
 
 // Create navigators
@@ -45,6 +46,7 @@ const SettingsStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SettingsMain" component={SettingsScreen} />
+      <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />
     </Stack.Navigator>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
 import {
@@ -19,6 +20,7 @@ export const SettingsScreen: React.FC = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const settings = useAppSelector((state) => state.settings);
+  const navigation = useNavigation();
   
   // Local state for time picker
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -233,6 +235,9 @@ export const SettingsScreen: React.FC = () => {
       backgroundColor: theme.colors.border,
       marginVertical: theme.spacing.sm,
     },
+    buttonContainer: {
+      marginTop: theme.spacing.md,
+    },
     versionText: {
       fontSize: theme.typography.fontSize.sm,
       color: theme.colors.text,
@@ -359,6 +364,14 @@ export const SettingsScreen: React.FC = () => {
             onValueChange={handleNotificationToggle}
             trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
             thumbColor={settings.notifications.enabled ? '#fff' : '#f4f3f4'}
+          />
+        </View>
+        
+        <View style={dynamicStyles.buttonContainer}>
+          <Button
+            title="Test Notifications"
+            onPress={() => navigation.navigate('NotificationTest' as never)}
+            variant="outline"
           />
         </View>
         

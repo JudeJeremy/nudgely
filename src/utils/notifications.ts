@@ -94,26 +94,6 @@ export const scheduleHabitReminder = async (
 };
 
 /**
- * Schedule a focus session notification
- * @param duration Duration of the focus session in minutes
- * @returns Notification ID
- */
-export const scheduleFocusSessionNotification = async (
-  duration: number
-): Promise<string> => {
-  return await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Focus Session Complete',
-      body: `Great job! You've completed a ${duration}-minute focus session.`,
-      data: { type: 'focusSession' },
-    },
-    trigger: {
-      seconds: duration * 60,
-    } as any,
-  });
-};
-
-/**
  * Schedule a daily summary notification
  * @param time Time of day to send notification (HH:MM format)
  * @returns Notification ID
