@@ -49,22 +49,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     });
   };
   
-  // Get priority color
-  const getPriorityColor = () => {
-    if (!task.priority) return theme.colors.text;
-    
-    switch (task.priority) {
-      case 'high':
-        return theme.colors_extended.danger[theme.dark ? 'dark' : 'light'];
-      case 'medium':
-        return theme.colors_extended.warning[theme.dark ? 'dark' : 'light'];
-      case 'low':
-        return theme.colors_extended.success[theme.dark ? 'dark' : 'light'];
-      default:
-        return theme.colors.text;
-    }
-  };
-  
   // Get category color
   const getCategoryColor = () => {
     // Map category to a color
@@ -146,12 +130,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       opacity: 0.8,
       marginRight: theme.spacing.md,
     },
-    priority: {
-      fontSize: theme.typography.fontSize.xs,
-      color: getPriorityColor(),
-      fontWeight: '600',
-      marginRight: theme.spacing.md,
-    },
     category: {
       fontSize: theme.typography.fontSize.xs,
       color: theme.colors.text,
@@ -212,12 +190,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               {task.dueDate && (
                 <Text style={dynamicStyles.dueDate}>
                   {formatDueDate(task.dueDate)}
-                </Text>
-              )}
-              
-              {task.priority && (
-                <Text style={dynamicStyles.priority}>
-                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                 </Text>
               )}
               

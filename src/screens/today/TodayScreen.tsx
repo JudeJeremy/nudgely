@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
@@ -30,15 +30,15 @@ export const TodayScreen: React.FC = () => {
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  // Get date range for the week
-  const getWeekDates = () => {
+  // Get date range for scrollable dates (2 weeks)
+  const getScrollableDates = () => {
     const dates = [];
-    const startOfWeek = new Date(selectedDate);
-    startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 7); // Start from 1 week ago
     
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
+    for (let i = 0; i < 21; i++) { // 3 weeks total
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
       dates.push(date);
     }
     return dates;
@@ -72,7 +72,7 @@ export const TodayScreen: React.FC = () => {
     const items: TodayItem[] = [];
     const selectedDateString = selectedDate.toISOString().split('T')[0];
     
-    // Add tasks due today
+    // Add tasks due today (only if they have due dates)
     tasks.forEach((task) => {
       if (task.dueDate) {
         const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
@@ -145,10 +145,35 @@ export const TodayScreen: React.FC = () => {
       return 'Tomorrow';
     }
     
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    }
+    
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
+    });
+  };
+  
+  // Format date for header subtitle
+  const formatHeaderDate = (date: Date) => {
+    const today = new Date();
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
     });
   };
   
@@ -158,23 +183,21 @@ export const TodayScreen: React.FC = () => {
       backgroundColor: theme.colors.background,
     },
     dateSelector: {
-      paddingHorizontal: theme.spacing.md,
       paddingVertical: theme.spacing.sm,
       backgroundColor: theme.colors.card,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    weekContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+    dateScrollView: {
+      paddingHorizontal: theme.spacing.md,
     },
     dateItem: {
       alignItems: 'center',
       paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.md,
       borderRadius: theme.borderRadius.md,
-      minWidth: 40,
+      marginRight: theme.spacing.sm,
+      minWidth: 50,
     },
     selectedDateItem: {
       backgroundColor: theme.colors.primary,
@@ -392,14 +415,18 @@ export const TodayScreen: React.FC = () => {
     <View style={dynamicStyles.container}>
       <Header 
         title="Today" 
-        subtitle={formatDate(selectedDate)}
+        subtitle={formatHeaderDate(selectedDate)}
       />
       
-      {/* Date Selector */}
+      {/* Scrollable Date Selector */}
       <View style={dynamicStyles.dateSelector}>
-        <View style={dynamicStyles.weekContainer}>
-          {getWeekDates().map((date, index) => renderDateItem(date, index))}
-        </View>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={dynamicStyles.dateScrollView}
+        >
+          {getScrollableDates().map((date, index) => renderDateItem(date, index))}
+        </ScrollView>
       </View>
       
       {/* Content */}

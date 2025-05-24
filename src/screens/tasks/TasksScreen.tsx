@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Text, Modal } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Text, Modal, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
 import { Task, addTask, updateTask, deleteTask, toggleTaskCompletion } from '../../store/slices/taskSlice';
@@ -22,14 +23,18 @@ export const TasksScreen: React.FC = () => {
     title: '',
     description: '',
     category: 'Personal',
-    priority: 'medium',
+    starred: false,
     completed: false,
   });
   
+  // State for date picker
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
   // State for filtering
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
-  const [filterPriority, setFilterPriority] = useState<'low' | 'medium' | 'high' | null>(null);
   const [showCompleted, setShowCompleted] = useState(true);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
   
   // Filter tasks based on current filters
   const filteredTasks = tasks.filter((task) => {
@@ -39,23 +44,22 @@ export const TasksScreen: React.FC = () => {
     // Filter by category
     if (filterCategory && task.category !== filterCategory) return false;
     
-    // Filter by priority
-    if (filterPriority && task.priority !== filterPriority) return false;
+    // Filter by starred status
+    if (showStarredOnly && !task.starred) return false;
     
     return true;
   });
   
-  // Sort tasks: incomplete first, then by priority, then by due date
+  // Sort tasks: starred first, then incomplete, then by due date
   const sortedTasks = [...filteredTasks].sort((a, b) => {
+    // Starred tasks first
+    if (a.starred !== b.starred) {
+      return a.starred ? -1 : 1;
+    }
+    
     // Incomplete tasks first
     if (a.completed !== b.completed) {
       return a.completed ? 1 : -1;
-    }
-    
-    // Sort by priority
-    const priorityOrder = { high: 0, medium: 1, low: 2 };
-    if (a.priority !== b.priority) {
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
     }
     
     // Sort by due date if available
@@ -84,6 +88,7 @@ export const TasksScreen: React.FC = () => {
   // Handle task edit
   const handleEditTask = (task: Task) => {
     setCurrentTask(task);
+    setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
     setIsEditing(true);
     setIsModalVisible(true);
   };
@@ -92,18 +97,22 @@ export const TasksScreen: React.FC = () => {
   const handleSubmitTask = () => {
     if (!currentTask.title) return; // Don't submit if title is empty
     
+    const taskData = {
+      ...currentTask,
+      dueDate: selectedDate ? selectedDate.toISOString() : undefined,
+    };
+    
     if (isEditing && currentTask.id) {
-      dispatch(updateTask(currentTask as Task));
+      dispatch(updateTask(taskData as Task));
     } else {
       dispatch(
         addTask({
           title: currentTask.title,
           description: currentTask.description || '',
           category: currentTask.category || 'Personal',
-          priority: (currentTask.priority as 'low' | 'medium' | 'high') || 'medium',
           starred: false,
           completed: false,
-          dueDate: currentTask.dueDate,
+          dueDate: selectedDate ? selectedDate.toISOString() : undefined,
         })
       );
     }
@@ -111,11 +120,12 @@ export const TasksScreen: React.FC = () => {
     // Reset form and close modal
     setIsModalVisible(false);
     setIsEditing(false);
+    setSelectedDate(null);
     setCurrentTask({
       title: '',
       description: '',
       category: 'Personal',
-      priority: 'medium',
+      starred: false,
       completed: false,
     });
   };
@@ -123,11 +133,12 @@ export const TasksScreen: React.FC = () => {
   // Handle adding a new task
   const handleAddTask = () => {
     setIsEditing(false);
+    setSelectedDate(null);
     setCurrentTask({
       title: '',
       description: '',
       category: 'Personal',
-      priority: 'medium',
+      starred: false,
       completed: false,
     });
     setIsModalVisible(true);
@@ -137,23 +148,36 @@ export const TasksScreen: React.FC = () => {
   const handleCancelForm = () => {
     setIsModalVisible(false);
     setIsEditing(false);
+    setSelectedDate(null);
     setCurrentTask({
       title: '',
       description: '',
       category: 'Personal',
-      priority: 'medium',
+      starred: false,
       completed: false,
     });
   };
   
-  // Handle changing due date
-  const handleDueDateChange = (date: Date | null) => {
-    if (date) {
-      setCurrentTask({ ...currentTask, dueDate: date.toISOString() });
-    } else {
-      const { dueDate, ...rest } = currentTask;
-      setCurrentTask(rest);
+  // Handle date picker change
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
     }
+    
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+  
+  // Handle date picker button press
+  const handleDatePickerPress = () => {
+    setShowDatePicker(true);
+  };
+  
+  // Handle clear date
+  const handleClearDate = () => {
+    setSelectedDate(null);
+    setShowDatePicker(false);
   };
   
   const dynamicStyles = StyleSheet.create({
@@ -161,17 +185,6 @@ export const TasksScreen: React.FC = () => {
       flex: 1,
       backgroundColor: theme.colors.background,
       padding: theme.spacing.md,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    title: {
-      fontSize: theme.typography.fontSize.xl,
-      fontWeight: 'bold',
-      color: theme.colors.text,
     },
     filterContainer: {
       marginBottom: theme.spacing.md,
@@ -248,31 +261,11 @@ export const TasksScreen: React.FC = () => {
       color: theme.colors.text,
       marginBottom: theme.spacing.md,
     },
-    formRow: {
-      flexDirection: 'row',
-      gap: theme.spacing.md,
-      marginBottom: theme.spacing.md,
-    },
     buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
       gap: theme.spacing.md,
       marginTop: theme.spacing.lg,
-    },
-    priorityButton: {
-      flex: 1,
-      paddingVertical: theme.spacing.sm,
-      borderRadius: theme.borderRadius.sm,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-    },
-    priorityButtonActive: {
-      borderWidth: 0,
-    },
-    priorityButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: '600',
     },
     categoryButton: {
       paddingHorizontal: theme.spacing.md,
@@ -294,45 +287,32 @@ export const TasksScreen: React.FC = () => {
     categoryButtonTextActive: {
       color: 'white',
     },
+    datePickerContainer: {
+      marginBottom: theme.spacing.md,
+    },
+    datePickerButton: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: theme.spacing.md,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.borderRadius.sm,
+      backgroundColor: theme.colors.background,
+    },
+    datePickerText: {
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.text,
+    },
+    datePickerPlaceholder: {
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.text,
+      opacity: 0.5,
+    },
+    clearDateButton: {
+      padding: theme.spacing.xs,
+    },
   });
-  
-  // Render priority button
-  const renderPriorityButton = (priority: 'low' | 'medium' | 'high', label: string) => {
-    const isActive = currentTask.priority === priority;
-    let backgroundColor;
-    
-    switch (priority) {
-      case 'high':
-        backgroundColor = theme.colors_extended.danger[theme.dark ? 'dark' : 'light'];
-        break;
-      case 'medium':
-        backgroundColor = theme.colors_extended.warning[theme.dark ? 'dark' : 'light'];
-        break;
-      case 'low':
-        backgroundColor = theme.colors_extended.success[theme.dark ? 'dark' : 'light'];
-        break;
-    }
-    
-    return (
-      <TouchableOpacity
-        style={[
-          dynamicStyles.priorityButton,
-          isActive && dynamicStyles.priorityButtonActive,
-          isActive && { backgroundColor },
-        ]}
-        onPress={() => setCurrentTask({ ...currentTask, priority })}
-      >
-        <Text
-          style={[
-            dynamicStyles.priorityButtonText,
-            { color: isActive ? 'white' : theme.colors.text },
-          ]}
-        >
-          {label}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
   
   // Render empty state
   const renderEmptyState = () => (
@@ -401,72 +381,21 @@ export const TasksScreen: React.FC = () => {
       </View>
       
       <View style={dynamicStyles.filterContainer}>
-        {/* Priority filters */}
+        {/* Starred filter */}
         <TouchableOpacity
           style={[
             dynamicStyles.filterButton,
-            filterPriority === null && dynamicStyles.filterButtonActive,
+            showStarredOnly && dynamicStyles.filterButtonActive,
           ]}
-          onPress={() => setFilterPriority(null)}
+          onPress={() => setShowStarredOnly(!showStarredOnly)}
         >
           <Text
             style={[
               dynamicStyles.filterButtonText,
-              filterPriority === null && dynamicStyles.filterButtonTextActive,
+              showStarredOnly && dynamicStyles.filterButtonTextActive,
             ]}
           >
-            All Priorities
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            dynamicStyles.filterButton,
-            filterPriority === 'high' && dynamicStyles.filterButtonActive,
-          ]}
-          onPress={() => setFilterPriority(filterPriority === 'high' ? null : 'high')}
-        >
-          <Text
-            style={[
-              dynamicStyles.filterButtonText,
-              filterPriority === 'high' && dynamicStyles.filterButtonTextActive,
-            ]}
-          >
-            High
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            dynamicStyles.filterButton,
-            filterPriority === 'medium' && dynamicStyles.filterButtonActive,
-          ]}
-          onPress={() => setFilterPriority(filterPriority === 'medium' ? null : 'medium')}
-        >
-          <Text
-            style={[
-              dynamicStyles.filterButtonText,
-              filterPriority === 'medium' && dynamicStyles.filterButtonTextActive,
-            ]}
-          >
-            Medium
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            dynamicStyles.filterButton,
-            filterPriority === 'low' && dynamicStyles.filterButtonActive,
-          ]}
-          onPress={() => setFilterPriority(filterPriority === 'low' ? null : 'low')}
-        >
-          <Text
-            style={[
-              dynamicStyles.filterButtonText,
-              filterPriority === 'low' && dynamicStyles.filterButtonTextActive,
-            ]}
-          >
-            Low
+            Starred Only
           </Text>
         </TouchableOpacity>
         
@@ -542,13 +471,27 @@ export const TasksScreen: React.FC = () => {
               numberOfLines={3}
             />
             
-            <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
-              Priority
-            </Text>
-            <View style={dynamicStyles.formRow}>
-              {renderPriorityButton('low', 'Low')}
-              {renderPriorityButton('medium', 'Medium')}
-              {renderPriorityButton('high', 'High')}
+            {/* Due Date Picker */}
+            <View style={dynamicStyles.datePickerContainer}>
+              <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
+                Due Date (optional)
+              </Text>
+              <TouchableOpacity
+                style={dynamicStyles.datePickerButton}
+                onPress={handleDatePickerPress}
+              >
+                <Text style={selectedDate ? dynamicStyles.datePickerText : dynamicStyles.datePickerPlaceholder}>
+                  {selectedDate ? selectedDate.toLocaleDateString() : 'Select due date'}
+                </Text>
+                {selectedDate && (
+                  <TouchableOpacity
+                    style={dynamicStyles.clearDateButton}
+                    onPress={handleClearDate}
+                  >
+                    <Text style={{ color: theme.colors.primary }}>Clear</Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
             </View>
             
             <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
@@ -593,6 +536,17 @@ export const TasksScreen: React.FC = () => {
           </Card>
         </View>
       </Modal>
+      
+      {/* Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          minimumDate={new Date()}
+        />
+      )}
       </View>
     </View>
   );

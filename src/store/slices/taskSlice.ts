@@ -6,7 +6,6 @@ export interface Task {
   description?: string;
   completed: boolean;
   category: string;
-  priority?: 'low' | 'medium' | 'high';
   starred: boolean;
   dueDate?: string;
   createdAt: string;
