@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
@@ -28,9 +28,11 @@ export const TodayScreen: React.FC = () => {
   const tasks = useAppSelector((state) => state.tasks.tasks);
   const habits = useAppSelector((state) => state.habits.habits);
   
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(today);
+  const dateScrollViewRef = useRef<ScrollView>(null);
   
-  // Get date range for scrollable dates (2 weeks)
+  // Get date range for scrollable dates (3 weeks)
   const getScrollableDates = () => {
     const dates = [];
     const startDate = new Date();
@@ -43,6 +45,23 @@ export const TodayScreen: React.FC = () => {
     }
     return dates;
   };
+
+  // Scroll to today's date when component mounts
+  useEffect(() => {
+    // We need to wait for the component to render before scrolling
+    const timer = setTimeout(() => {
+      if (dateScrollViewRef.current) {
+        // Calculate the position to scroll to (today is at index 7)
+        const todayIndex = 7; // Since we start 7 days ago, today is at index 7
+        const itemWidth = 50 + theme.spacing.sm; // Width of date item + margin
+        const scrollToX = todayIndex * itemWidth;
+        
+        dateScrollViewRef.current.scrollTo({ x: scrollToX, animated: true });
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Check if habit is scheduled for the selected date
   const isHabitScheduledForDate = (habit: Habit, date: Date) => {
@@ -421,6 +440,7 @@ export const TodayScreen: React.FC = () => {
       {/* Scrollable Date Selector */}
       <View style={dynamicStyles.dateSelector}>
         <ScrollView 
+          ref={dateScrollViewRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={dynamicStyles.dateScrollView}
