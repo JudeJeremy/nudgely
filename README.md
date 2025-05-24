@@ -1,50 +1,106 @@
-# Welcome to your Expo app 👋
+# Nudgely
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile productivity and to-do app built with Expo and React Native that helps users efficiently manage their tasks, build positive habits, and stay focused.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Smart To-Do List**: Organize tasks with categories, priorities, and quick-add functionality
+- **Habit Tracker**: Track habits with streaks and daily/weekly views
+- **Focus Timer**: Pomodoro-style timer for deep work sessions
+- **Push Notifications**: Get reminders and motivational messages
+- **Clean UI/UX**: Enjoy a minimal interface with light/dark modes
+- **Local Storage**: Save your data with AsyncStorage
+- **Optional Firebase Integration**: Sync your data across devices
+- **Gesture Support**: Swipe to complete or delete tasks
+- **Calendar Integration**: Sync with Google or iOS calendars
 
-   ```bash
+## Tech Stack
+
+- **React Native**: Cross-platform mobile framework
+- **Expo**: Development platform for React Native
+- **Redux Toolkit**: State management
+- **Redux Persist**: Persist and rehydrate Redux store
+- **React Navigation**: Navigation library
+- **AsyncStorage**: Local storage solution
+- **Expo Notifications**: Push notifications
+- **Expo Calendar**: Calendar integration
+- **React Native Gesture Handler**: Gesture recognition
+- **React Native Reanimated**: Animations
+- **TypeScript**: Type safety
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- npm or yarn
+- Expo CLI
+- iOS Simulator or Android Emulator (optional)
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/nudgely.git
+   cd nudgely
+   ```
+
+2. Install dependencies:
+   ```
    npm install
    ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
+   or
+   ```
+   yarn install
    ```
 
-In the output, you'll find options to open the app in a
+3. Start the development server:
+   ```
+   npm start
+   ```
+   or
+   ```
+   yarn start
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4. Follow the instructions in the terminal to open the app on your device or emulator.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+nudgely/
+├── assets/                # Images, fonts, and other static assets
+├── src/
+│   ├── components/        # Reusable UI components
+│   │   ├── common/        # Common UI components
+│   │   ├── tasks/         # Task-related components
+│   │   ├── habits/        # Habit-related components
+│   │   └── timer/         # Timer-related components
+│   ├── hooks/             # Custom React hooks
+│   ├── navigation/        # Navigation configuration
+│   ├── screens/           # Screen components
+│   │   ├── tasks/         # Task screens
+│   │   ├── habits/        # Habit screens
+│   │   ├── timer/         # Timer screens
+│   │   └── settings/      # Settings screens
+│   ├── store/             # Redux store configuration
+│   │   └── slices/        # Redux slices
+│   ├── theme/             # Theme configuration
+│   └── utils/             # Utility functions
+├── App.tsx                # Main app component
+├── app.json               # Expo configuration
+├── babel.config.js        # Babel configuration
+├── package.json           # Project dependencies
+└── tsconfig.json          # TypeScript configuration
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## License
 
-## Learn more
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Acknowledgements
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo](https://expo.dev/)
+- [React Native](https://reactnative.dev/)
+- [Redux Toolkit](https://redux-toolkit.js.org/)
+- [React Navigation](https://reactnavigation.org/)
