@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
 import {
@@ -28,6 +29,7 @@ export const SettingsScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const settings = useAppSelector((state) => state.settings);
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   
   // Local state for time picker
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -361,7 +363,13 @@ export const SettingsScreen: React.FC = () => {
           </TouchableOpacity>
         }
       />
-      <ScrollView style={dynamicStyles.container}>
+      <ScrollView 
+        style={dynamicStyles.container}
+        contentContainerStyle={{
+          paddingBottom: Math.max(insets.bottom + 80, 100), // Tab bar height + extra padding
+        }}
+        showsVerticalScrollIndicator={false}
+      >
       
       {/* Appearance Settings */}
       <Text style={dynamicStyles.sectionTitle}>Appearance</Text>
