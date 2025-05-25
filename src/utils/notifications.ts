@@ -19,17 +19,22 @@ Notifications.setNotificationHandler({
  * @returns Whether permissions were granted
  */
 export const requestNotificationPermissions = async (): Promise<boolean> => {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-  
-  // Only ask if permissions have not already been determined
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+  try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    
+    // Only ask if permissions have not already been determined
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    
+    // Return true if permission was granted
+    return finalStatus === 'granted';
+  } catch (error) {
+    console.warn('Notification permissions not available in this environment:', error);
+    return false;
   }
-  
-  // Return true if permission was granted
-  return finalStatus === 'granted';
 };
 
 /**

@@ -86,10 +86,6 @@ export const SettingsScreen: React.FC = () => {
     dispatch(updateThemeSettings({ mode }));
   };
   
-  // Handle primary color change
-  const handlePrimaryColorChange = (color: string) => {
-    dispatch(updateThemeSettings({ primaryColor: color }));
-  };
   
   // Handle calendar sync toggle
   const handleCalendarSyncToggle = async (value: boolean) => {
@@ -209,23 +205,6 @@ export const SettingsScreen: React.FC = () => {
     themeButtonTextActive: {
       color: 'white',
     },
-    colorButtonContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginTop: theme.spacing.sm,
-    },
-    colorButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: theme.spacing.sm,
-      marginBottom: theme.spacing.sm,
-      borderWidth: 2,
-      borderColor: theme.colors.border,
-    },
-    colorButtonActive: {
-      borderColor: theme.colors.text,
-    },
     resetButton: {
       marginTop: theme.spacing.lg,
       alignSelf: 'center',
@@ -246,20 +225,6 @@ export const SettingsScreen: React.FC = () => {
       marginTop: theme.spacing.xl,
     },
   });
-  
-  // Available colors for theme
-  const themeColors = [
-    '#0a7ea4', // Default blue
-    '#6c757d', // Gray
-    '#28a745', // Green
-    '#dc3545', // Red
-    '#ffc107', // Yellow
-    '#17a2b8', // Teal
-    '#6f42c1', // Purple
-    '#fd7e14', // Orange
-    '#20c997', // Mint
-    '#e83e8c', // Pink
-  ];
   
   // Render theme mode button
   const renderThemeModeButton = (mode: 'light' | 'dark' | 'system', label: string) => {
@@ -282,22 +247,6 @@ export const SettingsScreen: React.FC = () => {
           {label}
         </Text>
       </TouchableOpacity>
-    );
-  };
-  
-  // Render color button
-  const renderColorButton = (color: string) => {
-    const isActive = settings.theme.primaryColor === color;
-    
-    return (
-      <TouchableOpacity
-        style={[
-          dynamicStyles.colorButton,
-          { backgroundColor: color },
-          isActive && dynamicStyles.colorButtonActive,
-        ]}
-        onPress={() => handlePrimaryColorChange(color)}
-      />
     );
   };
   
@@ -333,20 +282,6 @@ export const SettingsScreen: React.FC = () => {
           {renderThemeModeButton('system', 'System')}
         </View>
         
-        <View style={dynamicStyles.divider} />
-        
-        <View style={dynamicStyles.settingRow}>
-          <View>
-            <Text style={dynamicStyles.settingLabel}>Primary Color</Text>
-            <Text style={dynamicStyles.settingDescription}>
-              Choose the main color for the app
-            </Text>
-          </View>
-        </View>
-        
-        <View style={dynamicStyles.colorButtonContainer}>
-          {themeColors.map((color) => renderColorButton(color))}
-        </View>
       </Card>
       
       {/* Notification Settings */}

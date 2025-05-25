@@ -763,7 +763,17 @@ export const HabitsScreen: React.FC = () => {
               
               <Text style={dynamicStyles.sectionTitle}>Color</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md }}>
-                {habitColors.map((color) => renderColorButton(color))}
+                {habitColors.map((color, index) => (
+                  <TouchableOpacity
+                    key={`habit-color-${index}`}
+                    style={[
+                      dynamicStyles.colorButton,
+                      { backgroundColor: color },
+                      currentHabit.color === color && dynamicStyles.colorButtonActive,
+                    ]}
+                    onPress={() => handleColorSelect(color)}
+                  />
+                ))}
               </View>
               
               <View style={dynamicStyles.buttonContainer}>

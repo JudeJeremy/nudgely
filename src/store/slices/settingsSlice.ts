@@ -11,7 +11,6 @@ export interface NotificationSettings {
 
 export interface ThemeSettings {
   mode: 'light' | 'dark' | 'system';
-  primaryColor: string;
 }
 
 export interface CalendarSettings {
@@ -40,7 +39,6 @@ const initialState: SettingsState = {
   },
   theme: {
     mode: 'system',
-    primaryColor: '#0a7ea4', // Default blue color
   },
   calendar: {
     syncEnabled: false,
