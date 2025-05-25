@@ -35,7 +35,7 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
     setShowPicker(false);
   };
   
-  const dynamicStyles = StyleSheet.create({
+  const styles = StyleSheet.create({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -43,91 +43,104 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
     trigger: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.sm,
-      borderRadius: theme.borderRadius.sm,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 6,
       backgroundColor: theme.colors.background,
       borderWidth: 1,
       borderColor: theme.colors.border,
     },
     triggerText: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: 14,
       fontWeight: '600',
       color: theme.colors.text,
-      marginRight: theme.spacing.xs,
+      marginRight: 4,
     },
     modalOverlay: {
       flex: 1,
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       justifyContent: 'center',
       alignItems: 'center',
+      padding: 20,
     },
     modalContent: {
       backgroundColor: theme.colors.card,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.spacing.lg,
-      width: '80%',
-      maxHeight: '70%',
+      borderRadius: 12,
+      padding: 20,
+      width: '90%',
+      maxWidth: 400,
+      maxHeight: '80%',
     },
     modalHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: theme.spacing.md,
+      marginBottom: 20,
+      paddingBottom: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
     },
     modalTitle: {
-      fontSize: theme.typography.fontSize.lg,
+      fontSize: 18,
       fontWeight: 'bold',
       color: theme.colors.text,
     },
     closeButton: {
-      padding: theme.spacing.xs,
+      padding: 4,
     },
     pickerContainer: {
       flexDirection: 'row',
-      flex: 1,
+      minHeight: 300,
     },
     pickerColumn: {
       flex: 1,
-      marginHorizontal: theme.spacing.xs,
+      marginHorizontal: 8,
     },
     columnTitle: {
-      fontSize: theme.typography.fontSize.md,
+      fontSize: 16,
       fontWeight: '600',
       color: theme.colors.text,
       textAlign: 'center',
-      marginBottom: theme.spacing.sm,
+      marginBottom: 12,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
     },
     scrollView: {
-      maxHeight: 200,
+      flex: 1,
     },
     pickerItem: {
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: theme.borderRadius.sm,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
       marginVertical: 2,
       alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
     },
     selectedPickerItem: {
       backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
     },
     pickerItemText: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: 14,
       color: theme.colors.text,
+      fontWeight: '500',
     },
     selectedPickerItemText: {
-      color: 'white',
+      color: '#FFFFFF',
       fontWeight: '600',
     },
   });
   
   return (
-    <View style={dynamicStyles.container}>
+    <View style={styles.container}>
       <TouchableOpacity
-        style={dynamicStyles.trigger}
+        style={styles.trigger}
         onPress={() => setShowPicker(true)}
       >
-        <Text style={dynamicStyles.triggerText}>
+        <Text style={styles.triggerText}>
           {formatDisplayText()}
         </Text>
         <Ionicons
@@ -143,20 +156,12 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
         animationType="fade"
         onRequestClose={() => setShowPicker(false)}
       >
-        <TouchableOpacity
-          style={dynamicStyles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowPicker(false)}
-        >
-          <TouchableOpacity
-            style={dynamicStyles.modalContent}
-            activeOpacity={1}
-            onPress={() => {}}
-          >
-            <View style={dynamicStyles.modalHeader}>
-              <Text style={dynamicStyles.modalTitle}>Select Month & Year</Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Month & Year</Text>
               <TouchableOpacity
-                style={dynamicStyles.closeButton}
+                style={styles.closeButton}
                 onPress={() => setShowPicker(false)}
               >
                 <Ionicons
@@ -167,27 +172,31 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
               </TouchableOpacity>
             </View>
             
-            <View style={dynamicStyles.pickerContainer}>
+            <View style={styles.pickerContainer}>
               {/* Month Column */}
-              <View style={dynamicStyles.pickerColumn}>
-                <Text style={dynamicStyles.columnTitle}>Month</Text>
-                <ScrollView style={dynamicStyles.scrollView}>
+              <View style={styles.pickerColumn}>
+                <Text style={styles.columnTitle}>Month</Text>
+                <ScrollView 
+                  style={styles.scrollView}
+                  showsVerticalScrollIndicator={true}
+                  nestedScrollEnabled={true}
+                >
                   {months.map((month, index) => {
                     const isSelected = index === selectedDate.getMonth();
                     
                     return (
                       <TouchableOpacity
-                        key={month}
+                        key={`month-${index}`}
                         style={[
-                          dynamicStyles.pickerItem,
-                          isSelected && dynamicStyles.selectedPickerItem,
+                          styles.pickerItem,
+                          isSelected && styles.selectedPickerItem,
                         ]}
                         onPress={() => handleMonthYearSelect(index, selectedDate.getFullYear())}
                       >
                         <Text
                           style={[
-                            dynamicStyles.pickerItemText,
-                            isSelected && dynamicStyles.selectedPickerItemText,
+                            styles.pickerItemText,
+                            isSelected && styles.selectedPickerItemText,
                           ]}
                         >
                           {month}
@@ -199,25 +208,29 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
               </View>
               
               {/* Year Column */}
-              <View style={dynamicStyles.pickerColumn}>
-                <Text style={dynamicStyles.columnTitle}>Year</Text>
-                <ScrollView style={dynamicStyles.scrollView}>
+              <View style={styles.pickerColumn}>
+                <Text style={styles.columnTitle}>Year</Text>
+                <ScrollView 
+                  style={styles.scrollView}
+                  showsVerticalScrollIndicator={true}
+                  nestedScrollEnabled={true}
+                >
                   {years.map((year) => {
                     const isSelected = year === selectedDate.getFullYear();
                     
                     return (
                       <TouchableOpacity
-                        key={year}
+                        key={`year-${year}`}
                         style={[
-                          dynamicStyles.pickerItem,
-                          isSelected && dynamicStyles.selectedPickerItem,
+                          styles.pickerItem,
+                          isSelected && styles.selectedPickerItem,
                         ]}
                         onPress={() => handleMonthYearSelect(selectedDate.getMonth(), year)}
                       >
                         <Text
                           style={[
-                            dynamicStyles.pickerItemText,
-                            isSelected && dynamicStyles.selectedPickerItemText,
+                            styles.pickerItemText,
+                            isSelected && styles.selectedPickerItemText,
                           ]}
                         >
                           {year}
@@ -228,8 +241,8 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
                 </ScrollView>
               </View>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );
