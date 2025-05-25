@@ -13,8 +13,15 @@ import { Card } from '../../components/common/Card';
 import { Header } from '../../components/common/Header';
 import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
-import * as Calendar from 'expo-calendar';
 import * as Notifications from 'expo-notifications';
+import * as Calendar from 'expo-calendar';
+import {
+  requestCalendarPermissions,
+  getOrCreateNudgelyCalendar,
+  syncTasksToCalendar,
+  syncHabitsToCalendar,
+  deleteAllNudgelyEvents,
+} from '../../utils/calendar';
 
 export const SettingsScreen: React.FC = () => {
   const theme = useTheme();
@@ -44,24 +51,6 @@ export const SettingsScreen: React.FC = () => {
     }
   };
   
-  // Request calendar permissions
-  const requestCalendarPermissions = async () => {
-    try {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission Required',
-          'Calendar permissions are required for calendar sync to work.',
-          [{ text: 'OK' }]
-        );
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error('Error requesting calendar permissions:', error);
-      return false;
-    }
-  };
   
   // Handle notification toggle
   const handleNotificationToggle = async (value: boolean) => {
@@ -93,22 +82,87 @@ export const SettingsScreen: React.FC = () => {
       const hasPermission = await requestCalendarPermissions();
       if (!hasPermission) return;
       
-      // Get available calendars
-      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-      const defaultCalendar = calendars.find((cal) => cal.isPrimary) || calendars[0];
+      // Get or create Nudgely calendar
+      const calendarId = await getOrCreateNudgelyCalendar();
       
-      if (defaultCalendar) {
+      if (calendarId) {
         dispatch(
           updateCalendarSettings({
             syncEnabled: true,
-            calendarId: defaultCalendar.id,
+            calendarId: calendarId,
           })
         );
+        
+        // Check if we created a new calendar or are using an existing one
+        const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+        const nudgelyCalendar = calendars.find(cal => cal.id === calendarId);
+        const calendarName = nudgelyCalendar?.title || 'Unknown Calendar';
+        
+        if (calendarName === 'Nudgely') {
+          Alert.alert(
+            'Calendar Sync Enabled',
+            'A "Nudgely" calendar has been created. Your tasks and habits will be synced to this calendar.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          Alert.alert(
+            'Calendar Sync Enabled',
+            `Calendar sync is now enabled using your "${calendarName}" calendar. Your tasks and habits will be synced to this calendar.`,
+            [{ text: 'OK' }]
+          );
+        }
       } else {
-        Alert.alert('No Calendars Found', 'No calendars were found on your device.');
+        Alert.alert('Calendar Creation Failed', 'Unable to create or access calendar for syncing.');
       }
     } else {
-      dispatch(updateCalendarSettings({ syncEnabled: false }));
+      // When disabling sync, ask user what to do with existing events
+      if (settings.calendar.syncedEventIds.length > 0) {
+        Alert.alert(
+          'Calendar Sync Disabled',
+          'What would you like to do with existing Nudgely events in your calendar?',
+          [
+            {
+              text: 'Keep Events',
+              onPress: () => {
+                dispatch(updateCalendarSettings({ syncEnabled: false }));
+              },
+            },
+            {
+              text: 'Remove Events',
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  const deletedCount = await deleteAllNudgelyEvents(settings.calendar.syncedEventIds);
+                  dispatch(updateCalendarSettings({ 
+                    syncEnabled: false,
+                    syncedEventIds: []
+                  }));
+                  
+                  Alert.alert(
+                    'Events Removed',
+                    `Successfully removed ${deletedCount} events from your calendar.`,
+                    [{ text: 'OK' }]
+                  );
+                } catch (error) {
+                  console.error('Error removing calendar events:', error);
+                  Alert.alert('Cleanup Failed', 'Some events could not be removed from your calendar.');
+                  dispatch(updateCalendarSettings({ syncEnabled: false }));
+                }
+              },
+            },
+            {
+              text: 'Cancel',
+              style: 'cancel',
+              onPress: () => {
+                // Don't change anything - user cancelled
+              },
+            },
+          ]
+        );
+      } else {
+        // No events to clean up, just disable sync
+        dispatch(updateCalendarSettings({ syncEnabled: false }));
+      }
     }
   };
   
@@ -118,6 +172,51 @@ export const SettingsScreen: React.FC = () => {
     setting: 'syncTasks' | 'syncHabits'
   ) => {
     dispatch(updateCalendarSettings({ [setting]: value }));
+  };
+  
+  // Handle test calendar sync
+  const handleTestCalendarSync = async () => {
+    if (!settings.calendar.calendarId) {
+      Alert.alert('Error', 'No calendar ID found. Please disable and re-enable calendar sync.');
+      return;
+    }
+    
+    try {
+      // Get current tasks and habits from the store
+      const { getState } = require('../../store').store;
+      const state = getState();
+      const tasks = state.tasks.tasks;
+      const habits = state.habits.habits;
+      
+      let syncedCount = 0;
+      const allEventIds: string[] = [];
+      
+      if (settings.calendar.syncTasks) {
+        const taskResult = await syncTasksToCalendar(tasks, settings.calendar.calendarId);
+        syncedCount += taskResult.count;
+        allEventIds.push(...taskResult.eventIds);
+      }
+      
+      if (settings.calendar.syncHabits) {
+        const habitResult = await syncHabitsToCalendar(habits, settings.calendar.calendarId);
+        syncedCount += habitResult.count;
+        allEventIds.push(...habitResult.eventIds);
+      }
+      
+      // Store the event IDs for future cleanup
+      dispatch(updateCalendarSettings({ 
+        syncedEventIds: [...settings.calendar.syncedEventIds, ...allEventIds] 
+      }));
+      
+      Alert.alert(
+        'Calendar Sync Complete',
+        `Successfully synced ${syncedCount} events to your Nudgely calendar. Check your device's calendar app to see the events.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error testing calendar sync:', error);
+      Alert.alert('Sync Failed', 'Failed to sync events to calendar. Please try again.');
+    }
   };
   
   // Handle reset settings
@@ -409,6 +508,14 @@ export const SettingsScreen: React.FC = () => {
                 }
                 trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
                 thumbColor={settings.calendar.syncHabits ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+            
+            <View style={dynamicStyles.buttonContainer}>
+              <Button
+                title="Test Calendar Sync"
+                onPress={handleTestCalendarSync}
+                variant="outline"
               />
             </View>
           </>

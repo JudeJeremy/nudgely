@@ -18,6 +18,7 @@ export interface CalendarSettings {
   calendarId?: string;
   syncTasks: boolean;
   syncHabits: boolean;
+  syncedEventIds: string[];
 }
 
 interface SettingsState {
@@ -44,6 +45,7 @@ const initialState: SettingsState = {
     syncEnabled: false,
     syncTasks: true,
     syncHabits: true,
+    syncedEventIds: [],
   },
   firstLaunch: true,
   onboardingCompleted: false,
