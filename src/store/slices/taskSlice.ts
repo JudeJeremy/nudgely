@@ -8,6 +8,9 @@ export interface Task {
   category: string;
   starred: boolean;
   dueDate?: string;
+  startTime?: string; // HH:MM format (e.g., "09:00")
+  endTime?: string;   // HH:MM format (e.g., "10:00")
+  isAllDay?: boolean; // If true, ignore startTime/endTime
   createdAt: string;
 }
 
@@ -30,13 +33,20 @@ const taskSlice = createSlice({
         ...action.payload,
         id: Date.now().toString(),
         createdAt: new Date().toISOString(),
+        // Default to all-day if no time specified
+        isAllDay: action.payload.isAllDay ?? (!action.payload.startTime && !action.payload.endTime),
       };
       state.tasks.push(newTask);
     },
     updateTask: (state, action: PayloadAction<Partial<Task> & { id: string }>) => {
       const index = state.tasks.findIndex((task) => task.id === action.payload.id);
       if (index !== -1) {
-        state.tasks[index] = { ...state.tasks[index], ...action.payload };
+        const updatedTask = { ...state.tasks[index], ...action.payload };
+        // Auto-update isAllDay based on time fields
+        if (action.payload.startTime !== undefined || action.payload.endTime !== undefined) {
+          updatedTask.isAllDay = !updatedTask.startTime && !updatedTask.endTime;
+        }
+        state.tasks[index] = updatedTask;
       }
     },
     deleteTask: (state, action: PayloadAction<string>) => {
@@ -52,6 +62,19 @@ const taskSlice = createSlice({
       const task = state.tasks.find((task) => task.id === action.payload);
       if (task) {
         task.starred = !task.starred;
+      }
+    },
+    updateTaskTime: (state, action: PayloadAction<{ 
+      id: string; 
+      startTime?: string; 
+      endTime?: string; 
+      isAllDay?: boolean; 
+    }>) => {
+      const task = state.tasks.find((task) => task.id === action.payload.id);
+      if (task) {
+        task.startTime = action.payload.startTime;
+        task.endTime = action.payload.endTime;
+        task.isAllDay = action.payload.isAllDay ?? (!action.payload.startTime && !action.payload.endTime);
       }
     },
     addCategory: (state, action: PayloadAction<string>) => {
@@ -71,6 +94,7 @@ export const {
   deleteTask, 
   toggleTaskCompletion,
   toggleTaskStar,
+  updateTaskTime,
   addCategory,
   deleteCategory
 } = taskSlice.actions;

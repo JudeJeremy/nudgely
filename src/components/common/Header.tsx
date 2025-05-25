@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -10,6 +10,7 @@ interface HeaderProps {
   rightComponent?: React.ReactNode;
   leftComponent?: React.ReactNode;
   subtitle?: string;
+  compact?: boolean; // New prop for compact mode
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,24 +20,25 @@ export const Header: React.FC<HeaderProps> = ({
   rightComponent,
   leftComponent,
   subtitle,
+  compact = false,
 }) => {
   const theme = useTheme();
   
   const dynamicStyles = StyleSheet.create({
     container: {
       backgroundColor: theme.colors.card,
-      paddingTop: StatusBar.currentHeight || 44, // Account for status bar
-      paddingBottom: theme.spacing.md,
+      paddingTop: compact ? theme.spacing.xs : theme.spacing.md,
+      paddingBottom: compact ? theme.spacing.xs : theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
-      borderBottomWidth: 1,
+      borderBottomWidth: compact ? 0 : 1,
       borderBottomColor: theme.colors.border,
-      ...theme.shadows.sm,
+      ...(compact ? {} : theme.shadows.sm),
     },
     content: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      minHeight: 44,
+      minHeight: compact ? 32 : 44,
     },
     leftSection: {
       flexDirection: 'row',
@@ -59,35 +61,17 @@ export const Header: React.FC<HeaderProps> = ({
       alignItems: 'center',
     },
     title: {
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: 'bold',
+      fontSize: compact ? theme.typography.fontSize.md : theme.typography.fontSize.lg,
+      fontWeight: compact ? '600' : 'bold',
       color: theme.colors.text,
       textAlign: 'center',
     },
     subtitle: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: compact ? theme.typography.fontSize.xs : theme.typography.fontSize.sm,
       color: theme.colors.text,
       opacity: 0.7,
       textAlign: 'center',
       marginTop: 2,
-    },
-    appBrand: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    brandIcon: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: theme.colors.primary,
-      marginRight: theme.spacing.xs,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    brandText: {
-      fontSize: theme.typography.fontSize.md,
-      fontWeight: 'bold',
-      color: theme.colors.primary,
     },
   });
   
@@ -109,18 +93,6 @@ export const Header: React.FC<HeaderProps> = ({
             </TouchableOpacity>
           )}
           {leftComponent && !showBackButton && leftComponent}
-          {!showBackButton && !leftComponent && (
-            <View style={dynamicStyles.appBrand}>
-              <View style={dynamicStyles.brandIcon}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color="white"
-                />
-              </View>
-              <Text style={dynamicStyles.brandText}>Nudgely</Text>
-            </View>
-          )}
         </View>
         
         {/* Center Section */}

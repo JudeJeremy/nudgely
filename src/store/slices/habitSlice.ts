@@ -20,6 +20,9 @@ export interface Habit {
       evening?: boolean;
     };
   };
+  startTime?: string; // HH:MM format (e.g., "09:00")
+  endTime?: string;   // HH:MM format (e.g., "10:00")
+  isAllDay?: boolean; // If true, ignore startTime/endTime
   color: string;
   createdAt: string;
   completions: HabitCompletion[];
@@ -49,13 +52,20 @@ const habitSlice = createSlice({
         completions: [],
         currentStreak: 0,
         bestStreak: 0,
+        // Default to all-day if no time specified
+        isAllDay: action.payload.isAllDay ?? (!action.payload.startTime && !action.payload.endTime),
       };
       state.habits.push(newHabit);
     },
     updateHabit: (state, action: PayloadAction<Partial<Habit> & { id: string }>) => {
       const index = state.habits.findIndex((habit) => habit.id === action.payload.id);
       if (index !== -1) {
-        state.habits[index] = { ...state.habits[index], ...action.payload };
+        const updatedHabit = { ...state.habits[index], ...action.payload };
+        // Auto-update isAllDay based on time fields
+        if (action.payload.startTime !== undefined || action.payload.endTime !== undefined) {
+          updatedHabit.isAllDay = !updatedHabit.startTime && !updatedHabit.endTime;
+        }
+        state.habits[index] = updatedHabit;
       }
     },
     deleteHabit: (state, action: PayloadAction<string>) => {
@@ -82,6 +92,19 @@ const habitSlice = createSlice({
         
         // Update streaks
         updateStreaks(habit);
+      }
+    },
+    updateHabitTime: (state, action: PayloadAction<{ 
+      id: string; 
+      startTime?: string; 
+      endTime?: string; 
+      isAllDay?: boolean; 
+    }>) => {
+      const habit = state.habits.find((habit) => habit.id === action.payload.id);
+      if (habit) {
+        habit.startTime = action.payload.startTime;
+        habit.endTime = action.payload.endTime;
+        habit.isAllDay = action.payload.isAllDay ?? (!action.payload.startTime && !action.payload.endTime);
       }
     },
     addHabitCategory: (state, action: PayloadAction<string>) => {
@@ -156,6 +179,7 @@ export const {
   updateHabit,
   deleteHabit,
   completeHabit,
+  updateHabitTime,
   addHabitCategory,
   deleteHabitCategory,
 } = habitSlice.actions;
