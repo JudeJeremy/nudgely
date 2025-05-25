@@ -474,23 +474,6 @@ export const SettingsScreen: React.FC = () => {
         )}
       </Card>
       
-      {/* Categories */}
-      <Text style={dynamicStyles.sectionTitle}>Categories</Text>
-      <Card style={dynamicStyles.card}>
-        <TouchableOpacity
-          style={dynamicStyles.settingRow}
-          onPress={() => navigation.navigate('Categories' as never)}
-        >
-          <View>
-            <Text style={dynamicStyles.settingLabel}>Manage Categories</Text>
-            <Text style={dynamicStyles.settingDescription}>
-              Create and customize categories for tasks and habits
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={theme.colors.text} />
-        </TouchableOpacity>
-      </Card>
-      
       {/* Calendar Integration */}
       <Text style={dynamicStyles.sectionTitle}>Calendar Integration</Text>
       <Card style={dynamicStyles.card}>
