@@ -74,16 +74,65 @@ export const TodayScreen: React.FC = () => {
     );
   };
   
+  // Helper function to convert time string to minutes for comparison
+  const timeToMinutes = (timeStr: string): number => {
+    if (!timeStr) return -1;
+    
+    // Handle both 24-hour format (HH:MM) and 12-hour format (HH:MM AM/PM)
+    let cleanTime = timeStr.trim().toLowerCase();
+    let hours = 0;
+    let minutes = 0;
+    
+    if (cleanTime.includes('am') || cleanTime.includes('pm')) {
+      // 12-hour format
+      const isPM = cleanTime.includes('pm');
+      cleanTime = cleanTime.replace(/[ap]m/g, '').trim();
+      const [hourStr, minuteStr] = cleanTime.split(':');
+      hours = parseInt(hourStr, 10);
+      minutes = parseInt(minuteStr || '0', 10);
+      
+      if (isPM && hours !== 12) {
+        hours += 12;
+      } else if (!isPM && hours === 12) {
+        hours = 0;
+      }
+    } else {
+      // 24-hour format
+      const [hourStr, minuteStr] = cleanTime.split(':');
+      hours = parseInt(hourStr, 10);
+      minutes = parseInt(minuteStr || '0', 10);
+    }
+    
+    return hours * 60 + minutes;
+  };
+  
+  // Helper function to check if a task/habit time falls within a time slot
+  const isTimeInSlot = (itemTime: string, slotTime: string): boolean => {
+    const itemMinutes = timeToMinutes(itemTime);
+    const slotMinutes = timeToMinutes(slotTime);
+    
+    if (itemMinutes === -1 || slotMinutes === -1) return false;
+    
+    // Check if the item time falls within this hour slot (e.g., 10:28 PM falls in 22:00 slot)
+    return itemMinutes >= slotMinutes && itemMinutes < slotMinutes + 60;
+  };
+  
   // Get items for a specific time slot
   const getItemsForTimeSlot = (timeSlot: string): TodayItem[] => {
     const items: TodayItem[] = [];
-    const selectedDateString = selectedDate.toISOString().split('T')[0];
+    
+    // Normalize the selected date to compare with task dates
+    const selectedDateStr = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
     
     // Add tasks for this time slot
     tasks.forEach((task) => {
       if (task.dueDate && !task.isAllDay && task.startTime) {
-        const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
-        if (taskDate === selectedDateString && task.startTime === timeSlot) {
+        // Normalize task date for comparison
+        const taskDate = new Date(task.dueDate);
+        const taskDateStr = taskDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+        
+        // Check if task is on the selected date and time falls within this slot
+        if (taskDateStr === selectedDateStr && isTimeInSlot(task.startTime, timeSlot)) {
           items.push({
             id: task.id,
             type: 'task',
@@ -104,7 +153,7 @@ export const TodayScreen: React.FC = () => {
     // Add habits for this time slot
     habits.forEach((habit) => {
       if (isHabitScheduledForDate(habit, selectedDate) && !habit.isAllDay && habit.startTime) {
-        if (habit.startTime === timeSlot) {
+        if (isTimeInSlot(habit.startTime, timeSlot)) {
           items.push({
             id: habit.id,
             type: 'habit',
@@ -133,13 +182,18 @@ export const TodayScreen: React.FC = () => {
   // Get all-day items
   const getAllDayItems = (): TodayItem[] => {
     const items: TodayItem[] = [];
-    const selectedDateString = selectedDate.toISOString().split('T')[0];
+    
+    // Normalize the selected date to compare with task dates
+    const selectedDateStr = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
     
     // Add all-day tasks
     tasks.forEach((task) => {
       if (task.dueDate && (task.isAllDay || !task.startTime)) {
-        const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
-        if (taskDate === selectedDateString) {
+        // Normalize task date for comparison
+        const taskDate = new Date(task.dueDate);
+        const taskDateStr = taskDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+        
+        if (taskDateStr === selectedDateStr) {
           items.push({
             id: task.id,
             type: 'task',

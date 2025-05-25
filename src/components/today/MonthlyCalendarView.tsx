@@ -58,14 +58,17 @@ export const MonthlyCalendarView: React.FC<MonthlyCalendarViewProps> = ({
   
   // Get items for a specific date
   const getItemsForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
+    // Normalize the date to compare with task dates
+    const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
     const items: { title: string; color: string; type: 'task' | 'habit' }[] = [];
     
     // Add tasks for this date
     tasks.forEach((task) => {
       if (task.dueDate) {
-        const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
-        if (taskDate === dateString) {
+        // Normalize task date for comparison
+        const taskDate = new Date(task.dueDate);
+        const taskDateStr = taskDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+        if (taskDateStr === dateStr) {
           items.push({
             title: task.title,
             color: getCategoryColor(task.category),

@@ -37,14 +37,17 @@ export const WeekView: React.FC<WeekViewProps> = ({
   
   // Get category colors for items on a specific date
   const getDateColors = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
+    // Normalize the date to compare with task dates
+    const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
     const colors: string[] = [];
     
     // Check tasks for this date
     tasks.forEach((task) => {
       if (task.dueDate) {
-        const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
-        if (taskDate === dateString) {
+        // Normalize task date for comparison
+        const taskDate = new Date(task.dueDate);
+        const taskDateStr = taskDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+        if (taskDateStr === dateStr) {
           const categoryColor = getCategoryColor(task.category);
           if (!colors.includes(categoryColor)) {
             colors.push(categoryColor);
