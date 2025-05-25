@@ -8,6 +8,8 @@ import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 import { Card } from '../../components/common/Card';
 import { Header } from '../../components/common/Header';
+import { TimePicker } from '../../components/common/TimePicker';
+import { AllDayToggle } from '../../components/common/AllDayToggle';
 
 export const HabitsScreen: React.FC = () => {
   const theme = useTheme();
@@ -32,6 +34,9 @@ export const HabitsScreen: React.FC = () => {
       },
     },
     color: theme.colors_extended.primary[theme.dark ? 'dark' : 'light'],
+    isAllDay: true,
+    startTime: '',
+    endTime: '',
   });
   
   // State for filtering
@@ -72,7 +77,12 @@ export const HabitsScreen: React.FC = () => {
   
   // Handle habit edit
   const handleEditHabit = (habit: Habit) => {
-    setCurrentHabit(habit);
+    setCurrentHabit({
+      ...habit,
+      isAllDay: habit.isAllDay ?? true,
+      startTime: habit.startTime || '',
+      endTime: habit.endTime || '',
+    });
     setIsEditing(true);
     setIsModalVisible(true);
   };
@@ -81,8 +91,15 @@ export const HabitsScreen: React.FC = () => {
   const handleSubmitHabit = () => {
     if (!currentHabit.title) return; // Don't submit if title is empty
     
+    const habitData = {
+      ...currentHabit,
+      isAllDay: currentHabit.isAllDay ?? true,
+      startTime: currentHabit.isAllDay ? undefined : (currentHabit.startTime || undefined),
+      endTime: currentHabit.isAllDay ? undefined : (currentHabit.endTime || undefined),
+    };
+    
     if (isEditing && currentHabit.id) {
-      dispatch(updateHabit(currentHabit as Habit));
+      dispatch(updateHabit(habitData as Habit));
     } else {
       dispatch(
         addHabit({
@@ -95,11 +112,19 @@ export const HabitsScreen: React.FC = () => {
             times: { morning: true },
           },
           color: currentHabit.color || theme.colors_extended.primary[theme.dark ? 'dark' : 'light'],
+          isAllDay: currentHabit.isAllDay ?? true,
+          startTime: currentHabit.isAllDay ? undefined : (currentHabit.startTime || undefined),
+          endTime: currentHabit.isAllDay ? undefined : (currentHabit.endTime || undefined),
         })
       );
     }
     
     // Reset form and close modal
+    resetForm();
+  };
+  
+  // Reset form helper
+  const resetForm = () => {
     setIsModalVisible(false);
     setIsEditing(false);
     setCurrentHabit({
@@ -116,6 +141,9 @@ export const HabitsScreen: React.FC = () => {
         },
       },
       color: theme.colors_extended.primary[theme.dark ? 'dark' : 'light'],
+      isAllDay: true,
+      startTime: '',
+      endTime: '',
     });
   };
   
@@ -136,28 +164,41 @@ export const HabitsScreen: React.FC = () => {
         },
       },
       color: theme.colors_extended.primary[theme.dark ? 'dark' : 'light'],
+      isAllDay: true,
+      startTime: '',
+      endTime: '',
     });
     setIsModalVisible(true);
   };
   
   // Handle canceling the form
   const handleCancelForm = () => {
-    setIsModalVisible(false);
-    setIsEditing(false);
+    resetForm();
+  };
+  
+  // Handle all-day toggle
+  const handleAllDayToggle = (isAllDay: boolean) => {
     setCurrentHabit({
-      title: '',
-      description: '',
-      category: 'Morning',
-      frequency: {
-        type: 'daily',
-        days: [0, 1, 2, 3, 4, 5, 6],
-        times: {
-          morning: true,
-          afternoon: false,
-          evening: false,
-        },
-      },
-      color: theme.colors_extended.primary[theme.dark ? 'dark' : 'light'],
+      ...currentHabit,
+      isAllDay,
+      startTime: isAllDay ? '' : currentHabit.startTime,
+      endTime: isAllDay ? '' : currentHabit.endTime,
+    });
+  };
+  
+  // Handle start time change
+  const handleStartTimeChange = (time: string) => {
+    setCurrentHabit({
+      ...currentHabit,
+      startTime: time,
+    });
+  };
+  
+  // Handle end time change
+  const handleEndTimeChange = (time: string) => {
+    setCurrentHabit({
+      ...currentHabit,
+      endTime: time,
     });
   };
   
@@ -412,6 +453,16 @@ export const HabitsScreen: React.FC = () => {
       color: theme.colors.text,
       marginBottom: theme.spacing.xs,
       marginTop: theme.spacing.md,
+    },
+    timeSection: {
+      marginBottom: theme.spacing.md,
+    },
+    timeRow: {
+      flexDirection: 'row',
+      gap: theme.spacing.md,
+    },
+    timePickerContainer: {
+      flex: 1,
     },
   });
   
@@ -736,6 +787,35 @@ export const HabitsScreen: React.FC = () => {
                 {renderTimeButton('morning', 'Morning')}
                 {renderTimeButton('afternoon', 'Afternoon')}
                 {renderTimeButton('evening', 'Evening')}
+              </View>
+              
+              {/* Time Section */}
+              <View style={dynamicStyles.timeSection}>
+                <AllDayToggle
+                  value={currentHabit.isAllDay ?? true}
+                  onToggle={handleAllDayToggle}
+                />
+                
+                {!currentHabit.isAllDay && (
+                  <View style={dynamicStyles.timeRow}>
+                    <View style={dynamicStyles.timePickerContainer}>
+                      <TimePicker
+                        label="Start Time"
+                        value={currentHabit.startTime}
+                        onTimeChange={handleStartTimeChange}
+                        placeholder="Select start time"
+                      />
+                    </View>
+                    <View style={dynamicStyles.timePickerContainer}>
+                      <TimePicker
+                        label="End Time"
+                        value={currentHabit.endTime}
+                        onTimeChange={handleEndTimeChange}
+                        placeholder="Select end time"
+                      />
+                    </View>
+                  </View>
+                )}
               </View>
               
               <Text style={dynamicStyles.sectionTitle}>Category</Text>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Text, Modal, Platform } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Text, Modal, Platform, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
@@ -9,6 +9,8 @@ import { Button } from '../../components/common/Button';
 import { TextInput } from '../../components/common/TextInput';
 import { Card } from '../../components/common/Card';
 import { Header } from '../../components/common/Header';
+import { TimePicker } from '../../components/common/TimePicker';
+import { AllDayToggle } from '../../components/common/AllDayToggle';
 
 export const TasksScreen: React.FC = () => {
   const theme = useTheme();
@@ -25,6 +27,9 @@ export const TasksScreen: React.FC = () => {
     category: 'Personal',
     starred: false,
     completed: false,
+    isAllDay: true,
+    startTime: '',
+    endTime: '',
   });
   
   // State for date picker - simplified approach
@@ -88,7 +93,12 @@ export const TasksScreen: React.FC = () => {
   
   // Handle task edit
   const handleEditTask = (task: Task) => {
-    setCurrentTask(task);
+    setCurrentTask({
+      ...task,
+      isAllDay: task.isAllDay ?? true,
+      startTime: task.startTime || '',
+      endTime: task.endTime || '',
+    });
     setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
     setIsEditing(true);
     setIsModalVisible(true);
@@ -101,6 +111,9 @@ export const TasksScreen: React.FC = () => {
     const taskData = {
       ...currentTask,
       dueDate: selectedDate ? selectedDate.toISOString() : undefined,
+      isAllDay: currentTask.isAllDay ?? true,
+      startTime: currentTask.isAllDay ? undefined : (currentTask.startTime || undefined),
+      endTime: currentTask.isAllDay ? undefined : (currentTask.endTime || undefined),
     };
     
     if (isEditing && currentTask.id) {
@@ -114,6 +127,9 @@ export const TasksScreen: React.FC = () => {
           starred: false,
           completed: false,
           dueDate: selectedDate ? selectedDate.toISOString() : undefined,
+          isAllDay: currentTask.isAllDay ?? true,
+          startTime: currentTask.isAllDay ? undefined : (currentTask.startTime || undefined),
+          endTime: currentTask.isAllDay ? undefined : (currentTask.endTime || undefined),
         })
       );
     }
@@ -135,6 +151,9 @@ export const TasksScreen: React.FC = () => {
       category: 'Personal',
       starred: false,
       completed: false,
+      isAllDay: true,
+      startTime: '',
+      endTime: '',
     });
   };
   
@@ -149,6 +168,9 @@ export const TasksScreen: React.FC = () => {
       category: 'Personal',
       starred: false,
       completed: false,
+      isAllDay: true,
+      startTime: '',
+      endTime: '',
     });
     setIsModalVisible(true);
   };
@@ -156,6 +178,32 @@ export const TasksScreen: React.FC = () => {
   // Handle canceling the form
   const handleCancelForm = () => {
     resetForm();
+  };
+  
+  // Handle all-day toggle
+  const handleAllDayToggle = (isAllDay: boolean) => {
+    setCurrentTask({
+      ...currentTask,
+      isAllDay,
+      startTime: isAllDay ? '' : currentTask.startTime,
+      endTime: isAllDay ? '' : currentTask.endTime,
+    });
+  };
+  
+  // Handle start time change
+  const handleStartTimeChange = (time: string) => {
+    setCurrentTask({
+      ...currentTask,
+      startTime: time,
+    });
+  };
+  
+  // Handle end time change
+  const handleEndTimeChange = (time: string) => {
+    setCurrentTask({
+      ...currentTask,
+      endTime: time,
+    });
   };
   
   // Handle date picker change - Simplified for better iOS support
@@ -283,6 +331,7 @@ export const TasksScreen: React.FC = () => {
     modalContent: {
       width: '100%',
       maxWidth: 500,
+      maxHeight: '90%',
       backgroundColor: theme.colors.card,
       borderRadius: theme.borderRadius.md,
       padding: theme.spacing.lg,
@@ -363,6 +412,22 @@ export const TasksScreen: React.FC = () => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: theme.spacing.lg,
+    },
+    timeSection: {
+      marginBottom: theme.spacing.md,
+    },
+    timeSectionTitle: {
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: theme.spacing.sm,
+    },
+    timeRow: {
+      flexDirection: 'row',
+      gap: theme.spacing.md,
+    },
+    timePickerContainer: {
+      flex: 1,
     },
   });
   
@@ -503,88 +568,119 @@ export const TasksScreen: React.FC = () => {
       >
         <View style={dynamicStyles.modalContainer}>
           <Card style={dynamicStyles.modalContent} elevation="large">
-            <Text style={dynamicStyles.modalTitle}>
-              {isEditing ? 'Edit Task' : 'Add New Task'}
-            </Text>
-            
-            <TextInput
-              label="Title"
-              value={currentTask.title}
-              onChangeText={(text) => setCurrentTask({ ...currentTask, title: text })}
-              placeholder="Enter task title"
-            />
-            
-            <TextInput
-              label="Description (optional)"
-              value={currentTask.description}
-              onChangeText={(text) => setCurrentTask({ ...currentTask, description: text })}
-              placeholder="Enter task description"
-              multiline
-              numberOfLines={3}
-            />
-            
-            {/* Due Date Picker */}
-            <View style={dynamicStyles.datePickerContainer}>
-              <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
-                Due Date (optional)
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={dynamicStyles.modalTitle}>
+                {isEditing ? 'Edit Task' : 'Add New Task'}
               </Text>
-              <TouchableOpacity
-                style={dynamicStyles.datePickerButton}
-                onPress={handleDatePickerPress}
-              >
-                <Text style={selectedDate ? dynamicStyles.datePickerText : dynamicStyles.datePickerPlaceholder}>
-                  {selectedDate ? selectedDate.toLocaleDateString() : 'Select due date'}
+              
+              <TextInput
+                label="Title"
+                value={currentTask.title}
+                onChangeText={(text) => setCurrentTask({ ...currentTask, title: text })}
+                placeholder="Enter task title"
+              />
+              
+              <TextInput
+                label="Description (optional)"
+                value={currentTask.description}
+                onChangeText={(text) => setCurrentTask({ ...currentTask, description: text })}
+                placeholder="Enter task description"
+                multiline
+                numberOfLines={3}
+              />
+              
+              {/* Due Date Picker */}
+              <View style={dynamicStyles.datePickerContainer}>
+                <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
+                  Due Date (optional)
                 </Text>
-                {selectedDate && (
-                  <TouchableOpacity
-                    style={dynamicStyles.clearDateButton}
-                    onPress={handleClearDate}
-                  >
-                    <Text style={{ color: theme.colors.primary }}>Clear</Text>
-                  </TouchableOpacity>
-                )}
-              </TouchableOpacity>
-            </View>
-            
-            <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
-              Category
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md }}>
-              {categories.map((category) => (
                 <TouchableOpacity
-                  key={category}
-                  style={[
-                    dynamicStyles.categoryButton,
-                    currentTask.category === category && dynamicStyles.categoryButtonActive,
-                  ]}
-                  onPress={() => setCurrentTask({ ...currentTask, category })}
+                  style={dynamicStyles.datePickerButton}
+                  onPress={handleDatePickerPress}
                 >
-                  <Text
-                    style={[
-                      dynamicStyles.categoryButtonText,
-                      currentTask.category === category && dynamicStyles.categoryButtonTextActive,
-                    ]}
-                  >
-                    {category}
+                  <Text style={selectedDate ? dynamicStyles.datePickerText : dynamicStyles.datePickerPlaceholder}>
+                    {selectedDate ? selectedDate.toLocaleDateString() : 'Select due date'}
                   </Text>
+                  {selectedDate && (
+                    <TouchableOpacity
+                      style={dynamicStyles.clearDateButton}
+                      onPress={handleClearDate}
+                    >
+                      <Text style={{ color: theme.colors.primary }}>Clear</Text>
+                    </TouchableOpacity>
+                  )}
                 </TouchableOpacity>
-              ))}
-            </View>
-            
-            <View style={dynamicStyles.buttonContainer}>
-              <Button
-                title="Cancel"
-                onPress={handleCancelForm}
-                variant="outline"
-                style={{ marginRight: theme.spacing.md }}
-              />
-              <Button
-                title={isEditing ? 'Update' : 'Add'}
-                onPress={handleSubmitTask}
-                variant="primary"
-                disabled={!currentTask.title}
-              />
-            </View>
+              </View>
+              
+              {/* Time Section */}
+              <View style={dynamicStyles.timeSection}>
+                <AllDayToggle
+                  value={currentTask.isAllDay ?? true}
+                  onToggle={handleAllDayToggle}
+                />
+                
+                {!currentTask.isAllDay && (
+                  <View style={dynamicStyles.timeRow}>
+                    <View style={dynamicStyles.timePickerContainer}>
+                      <TimePicker
+                        label="Start Time"
+                        value={currentTask.startTime}
+                        onTimeChange={handleStartTimeChange}
+                        placeholder="Select start time"
+                      />
+                    </View>
+                    <View style={dynamicStyles.timePickerContainer}>
+                      <TimePicker
+                        label="End Time"
+                        value={currentTask.endTime}
+                        onTimeChange={handleEndTimeChange}
+                        placeholder="Select end time"
+                      />
+                    </View>
+                  </View>
+                )}
+              </View>
+              
+              <Text style={{ marginBottom: theme.spacing.xs, color: theme.colors.text }}>
+                Category
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md }}>
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      dynamicStyles.categoryButton,
+                      currentTask.category === category && dynamicStyles.categoryButtonActive,
+                    ]}
+                    onPress={() => setCurrentTask({ ...currentTask, category })}
+                  >
+                    <Text
+                      style={[
+                        dynamicStyles.categoryButtonText,
+                        currentTask.category === category && dynamicStyles.categoryButtonTextActive,
+                      ]}
+                    >
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <View style={dynamicStyles.buttonContainer}>
+                <Button
+                  title="Cancel"
+                  onPress={handleCancelForm}
+                  variant="outline"
+                  style={{ marginRight: theme.spacing.md }}
+                />
+                <Button
+                  title={isEditing ? 'Update' : 'Add'}
+                  onPress={handleSubmitTask}
+                  variant="primary"
+                  disabled={!currentTask.title}
+                />
+              </View>
+            </ScrollView>
           </Card>
         </View>
       </Modal>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
@@ -249,22 +249,38 @@ export const TodayScreen: React.FC = () => {
     },
     allDaySection: {
       marginBottom: theme.spacing.lg,
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.md,
+      shadowColor: theme.shadows.sm.shadowColor,
+      shadowOffset: theme.shadows.sm.shadowOffset,
+      shadowOpacity: theme.shadows.sm.shadowOpacity,
+      shadowRadius: theme.shadows.sm.shadowRadius,
+      elevation: theme.shadows.sm.elevation,
     },
     sectionTitle: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: '600',
+      fontSize: theme.typography.fontSize.md,
+      fontWeight: 'bold',
       color: theme.colors.text,
-      opacity: 0.8,
-      marginBottom: theme.spacing.sm,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
+      marginBottom: theme.spacing.md,
+      textAlign: 'center',
+    },
+    allDayGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.spacing.sm,
+    },
+    allDayItem: {
+      flex: 1,
+      minWidth: '45%',
+      maxWidth: '48%',
     },
     timeSlotContainer: {
       marginBottom: theme.spacing.md,
     },
     timeSlotHeader: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       marginBottom: theme.spacing.xs,
     },
     timeText: {
@@ -273,6 +289,7 @@ export const TodayScreen: React.FC = () => {
       color: theme.colors.text,
       opacity: 0.7,
       width: 60,
+      paddingTop: theme.spacing.xs,
     },
     timeSlotContent: {
       flex: 1,
@@ -284,8 +301,33 @@ export const TodayScreen: React.FC = () => {
     itemCard: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: theme.spacing.sm,
+      padding: theme.spacing.md,
       borderLeftWidth: 4,
+      borderRadius: theme.borderRadius.sm,
+      shadowColor: theme.shadows.sm.shadowColor,
+      shadowOffset: theme.shadows.sm.shadowOffset,
+      shadowOpacity: theme.shadows.sm.shadowOpacity,
+      shadowRadius: theme.shadows.sm.shadowRadius,
+      elevation: theme.shadows.sm.elevation,
+    },
+    allDayItemCard: {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+      padding: theme.spacing.sm,
+      borderRadius: theme.borderRadius.sm,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      minHeight: 80,
+      shadowColor: theme.shadows.sm.shadowColor,
+      shadowOffset: theme.shadows.sm.shadowOffset,
+      shadowOpacity: theme.shadows.sm.shadowOpacity,
+      shadowRadius: theme.shadows.sm.shadowRadius,
+      elevation: theme.shadows.sm.elevation,
+    },
+    allDayItemHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: theme.spacing.xs,
     },
     checkbox: {
       width: 20,
@@ -310,11 +352,23 @@ export const TodayScreen: React.FC = () => {
       fontWeight: '600',
       color: theme.colors.text,
     },
+    allDayItemTitle: {
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: theme.spacing.xs,
+    },
     itemTime: {
       fontSize: theme.typography.fontSize.xs,
       color: theme.colors.text,
       opacity: 0.6,
       marginTop: 2,
+    },
+    itemCategory: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.text,
+      opacity: 0.7,
+      fontWeight: '500',
     },
     starButton: {
       padding: theme.spacing.xs,
@@ -329,6 +383,17 @@ export const TodayScreen: React.FC = () => {
       fontSize: theme.typography.fontSize.xs,
       color: theme.colors.text,
       opacity: 0.5,
+    },
+    emptyAllDay: {
+      padding: theme.spacing.lg,
+      alignItems: 'center',
+      opacity: 0.5,
+    },
+    emptyAllDayText: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text,
+      opacity: 0.5,
+      textAlign: 'center',
     },
     // Modal styles
     modalOverlay: {
@@ -368,9 +433,66 @@ export const TodayScreen: React.FC = () => {
     },
   });
   
-  const renderItem = (item: TodayItem, showTime: boolean = false) => {
+  const renderItem = (item: TodayItem, showTime: boolean = false, isAllDay: boolean = false) => {
     const borderColor = item.type === 'habit' ? (item.color || theme.colors.primary) : getCategoryColor(item.category);
     const checkboxColor = item.type === 'habit' ? (item.color || theme.colors.primary) : theme.colors.primary;
+    
+    if (isAllDay) {
+      return (
+        <TouchableOpacity
+          key={item.id}
+          style={dynamicStyles.allDayItem}
+          onPress={() => handleItemPress(item)}
+        >
+          <Card style={{...dynamicStyles.allDayItemCard, borderColor: borderColor}}>
+            <View style={dynamicStyles.allDayItemHeader}>
+              <TouchableOpacity
+                style={[
+                  dynamicStyles.checkbox,
+                  {
+                    borderColor: checkboxColor,
+                    backgroundColor: item.completed ? checkboxColor : 'transparent',
+                  }
+                ]}
+                onPress={() => {
+                  if (item.type === 'task') {
+                    handleTaskToggle(item.id);
+                  } else {
+                    handleHabitToggle(item.id, item.completed);
+                  }
+                }}
+              >
+                {item.completed && <View style={dynamicStyles.checkboxInner} />}
+              </TouchableOpacity>
+              
+              {item.type === 'task' && (
+                <TouchableOpacity
+                  style={dynamicStyles.starButton}
+                  onPress={() => handleTaskStar(item.id)}
+                >
+                  <Ionicons
+                    name={item.starred ? 'star' : 'star-outline'}
+                    size={16}
+                    color={item.starred ? theme.colors_extended.warning[theme.dark ? 'dark' : 'light'] : theme.colors.text}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            <Text style={[
+              dynamicStyles.allDayItemTitle,
+              { textDecorationLine: item.completed ? 'line-through' : 'none' }
+            ]}>
+              {item.title}
+            </Text>
+            
+            <Text style={dynamicStyles.itemCategory}>
+              {item.category}
+            </Text>
+          </Card>
+        </TouchableOpacity>
+      );
+    }
     
     return (
       <TouchableOpacity
@@ -378,7 +500,7 @@ export const TodayScreen: React.FC = () => {
         style={dynamicStyles.itemContainer}
         onPress={() => handleItemPress(item)}
       >
-        <Card style={[dynamicStyles.itemCard, { borderLeftColor: borderColor }]}>
+        <Card style={{...dynamicStyles.itemCard, borderLeftColor: borderColor}}>
           <TouchableOpacity
             style={[
               dynamicStyles.checkbox,
@@ -437,12 +559,20 @@ export const TodayScreen: React.FC = () => {
     return (
       <ScrollView style={dynamicStyles.contentContainer}>
         {/* All Day Section */}
-        {allDayItems.length > 0 && (
-          <View style={dynamicStyles.allDaySection}>
-            <Text style={dynamicStyles.sectionTitle}>All Day</Text>
-            {allDayItems.map((item) => renderItem(item))}
-          </View>
-        )}
+        <View style={dynamicStyles.allDaySection}>
+          <Text style={dynamicStyles.sectionTitle}>All Day</Text>
+          {allDayItems.length > 0 ? (
+            <View style={dynamicStyles.allDayGrid}>
+              {allDayItems.map((item) => renderItem(item, false, true))}
+            </View>
+          ) : (
+            <View style={dynamicStyles.emptyAllDay}>
+              <Text style={dynamicStyles.emptyAllDayText}>
+                No all-day tasks or habits for today
+              </Text>
+            </View>
+          )}
+        </View>
         
         {/* Time Slots */}
         {timeSlots.map((timeSlot) => {
@@ -497,7 +627,7 @@ export const TodayScreen: React.FC = () => {
   };
   
   return (
-    <SafeAreaView style={dynamicStyles.container}>
+    <View style={dynamicStyles.container}>
       {/* Floating Header */}
       <View style={dynamicStyles.floatingHeader}>
         <ExpandableViewSwitcher currentView={viewMode} onViewChange={setViewMode} />
@@ -581,6 +711,6 @@ export const TodayScreen: React.FC = () => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
