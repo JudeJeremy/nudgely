@@ -71,8 +71,9 @@ export const YearlyOverview: React.FC<YearlyOverviewProps> = ({
   
   const dynamicStyles = StyleSheet.create({
     container: {
-      flex: 1,
       backgroundColor: theme.colors.background,
+    },
+    scrollContainer: {
       padding: theme.spacing.md,
     },
     yearHeader: {
@@ -184,7 +185,11 @@ export const YearlyOverview: React.FC<YearlyOverviewProps> = ({
   ];
   
   return (
-    <ScrollView style={dynamicStyles.container}>
+    <ScrollView 
+      style={dynamicStyles.container}
+      contentContainerStyle={dynamicStyles.scrollContainer}
+      showsVerticalScrollIndicator={true}
+    >
       {/* Year Header */}
       <View style={dynamicStyles.yearHeader}>
         <Text style={dynamicStyles.yearText}>{selectedYear}</Text>
