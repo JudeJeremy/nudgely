@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
@@ -28,15 +28,21 @@ interface CategoryFormProps {
 }
 
 export const CategoryForm: React.FC<CategoryFormProps> = ({
-  categoryId,
-  initialType = 'task',
+  categoryId: propCategoryId,
+  initialType: propInitialType = 'task',
   onSave,
   onCancel,
 }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
+  const route = useRoute();
   const insets = useSafeAreaInsets();
+  
+  // Get parameters from route or props
+  const routeParams = route.params as any || {};
+  const categoryId = routeParams.categoryId || propCategoryId;
+  const initialType = routeParams.initialType || propInitialType;
   
   const existingCategory = useAppSelector((state) => 
     state.categories.categories.find((cat) => cat.id === categoryId)

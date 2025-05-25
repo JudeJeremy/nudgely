@@ -68,13 +68,11 @@ export const CategoriesScreen: React.FC = () => {
   };
   
   const handleEditCategory = (category: Category) => {
-    // TODO: Navigate to CategoryForm screen
-    console.log('Edit category:', category.id);
+    (navigation as any).navigate('CategoryForm', { categoryId: category.id });
   };
   
   const handleAddCategory = () => {
-    // TODO: Navigate to CategoryForm screen
-    console.log('Add category for type:', selectedTab === 'all' ? 'task' : selectedTab);
+    (navigation as any).navigate('CategoryForm', { initialType: selectedTab === 'all' ? 'task' : selectedTab });
   };
   
   const handleResetCategories = () => {

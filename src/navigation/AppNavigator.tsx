@@ -14,6 +14,7 @@ import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import { NotificationTestScreen } from '../screens/settings/NotificationTestScreen';
 import { TodayScreen } from '../screens/today/TodayScreen';
 import { CategoriesScreen } from '../screens/categories/CategoriesScreen';
+import { CategoryForm } from '../components/categories/CategoryForm';
 
 // Create navigators
 const Tab = createBottomTabNavigator();
@@ -50,6 +51,7 @@ const SettingsStack = () => {
       <Stack.Screen name="SettingsMain" component={SettingsScreen} />
       <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />
       <Stack.Screen name="Categories" component={CategoriesScreen} />
+      <Stack.Screen name="CategoryForm" component={CategoryForm} />
     </Stack.Navigator>
   );
 };
