@@ -720,6 +720,7 @@ export const HabitsScreen: React.FC = () => {
             />
           )}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 80 }}
         />
       ) : (
         renderEmptyState()
