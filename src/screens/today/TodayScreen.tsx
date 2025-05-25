@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
 import { Task, toggleTaskCompletion, toggleTaskStar } from '../../store/slices/taskSlice';
@@ -31,6 +32,7 @@ interface TodayItem {
 export const TodayScreen: React.FC = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const navigation = useNavigation();
   const tasks = useAppSelector((state) => state.tasks.tasks);
   const habits = useAppSelector((state) => state.habits.habits);
   
@@ -38,6 +40,8 @@ export const TodayScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedItem, setSelectedItem] = useState<TodayItem | null>(null);
   const [showItemDetail, setShowItemDetail] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showQuickDateActions, setShowQuickDateActions] = useState(false);
   
   // Generate time slots for daily view
   const generateTimeSlots = () => {
@@ -196,6 +200,50 @@ export const TodayScreen: React.FC = () => {
   const handleItemPress = (item: TodayItem) => {
     setSelectedItem(item);
     setShowItemDetail(true);
+  };
+  
+  // Handle settings button press
+  const handleSettingsPress = () => {
+    navigation.navigate('Settings' as never);
+  };
+  
+  // Handle calendar button press (show quick date actions)
+  const handleCalendarPress = () => {
+    setShowQuickDateActions(true);
+  };
+  
+  // Quick date action handlers
+  const handleQuickDateAction = (action: string) => {
+    const today = new Date();
+    const currentDate = new Date(selectedDate);
+    
+    switch (action) {
+      case 'today':
+        setSelectedDate(new Date(today));
+        break;
+      case 'tomorrow':
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        setSelectedDate(tomorrow);
+        break;
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        setSelectedDate(yesterday);
+        break;
+      case 'nextWeek':
+        const nextWeek = new Date(currentDate);
+        nextWeek.setDate(currentDate.getDate() + 7);
+        setSelectedDate(nextWeek);
+        break;
+      case 'previousWeek':
+        const previousWeek = new Date(currentDate);
+        previousWeek.setDate(currentDate.getDate() - 7);
+        setSelectedDate(previousWeek);
+        break;
+    }
+    
+    setShowQuickDateActions(false);
   };
   
   // Format time range
@@ -431,6 +479,32 @@ export const TodayScreen: React.FC = () => {
       color: theme.colors.text,
       marginBottom: theme.spacing.sm,
     },
+    // Quick Date Actions Modal styles
+    quickDateActionsModal: {
+      backgroundColor: theme.colors.card,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.md,
+      width: '70%',
+      maxWidth: 300,
+    },
+    quickDateActionItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.sm,
+      borderRadius: theme.borderRadius.sm,
+      marginBottom: theme.spacing.xs,
+    },
+    quickDateActionIcon: {
+      marginRight: theme.spacing.md,
+      width: 24,
+      alignItems: 'center',
+    },
+    quickDateActionText: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.text,
+      fontWeight: '500',
+    },
   });
   
   const renderItem = (item: TodayItem, showTime: boolean = false, isAllDay: boolean = false) => {
@@ -634,10 +708,10 @@ export const TodayScreen: React.FC = () => {
         
         <View style={dynamicStyles.rightControls}>
           <MonthYearPicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-          <TouchableOpacity style={dynamicStyles.iconButton}>
+          <TouchableOpacity style={dynamicStyles.iconButton} onPress={handleCalendarPress}>
             <Ionicons name="calendar" size={20} color={theme.colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={dynamicStyles.iconButton}>
+          <TouchableOpacity style={dynamicStyles.iconButton} onPress={handleSettingsPress}>
             <Ionicons name="settings" size={20} color={theme.colors.text} />
           </TouchableOpacity>
         </View>
@@ -708,6 +782,76 @@ export const TodayScreen: React.FC = () => {
                 </Text>
               )}
             </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      
+      {/* Quick Date Actions Modal */}
+      <Modal
+        visible={showQuickDateActions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowQuickDateActions(false)}
+      >
+        <TouchableOpacity
+          style={dynamicStyles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowQuickDateActions(false)}
+        >
+          <TouchableOpacity
+            style={dynamicStyles.quickDateActionsModal}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            <TouchableOpacity
+              style={dynamicStyles.quickDateActionItem}
+              onPress={() => handleQuickDateAction('today')}
+            >
+              <View style={dynamicStyles.quickDateActionIcon}>
+                <Ionicons name="today" size={20} color={theme.colors.primary} />
+              </View>
+              <Text style={dynamicStyles.quickDateActionText}>Go to Today</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={dynamicStyles.quickDateActionItem}
+              onPress={() => handleQuickDateAction('tomorrow')}
+            >
+              <View style={dynamicStyles.quickDateActionIcon}>
+                <Ionicons name="arrow-forward" size={20} color={theme.colors.text} />
+              </View>
+              <Text style={dynamicStyles.quickDateActionText}>Go to Tomorrow</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={dynamicStyles.quickDateActionItem}
+              onPress={() => handleQuickDateAction('yesterday')}
+            >
+              <View style={dynamicStyles.quickDateActionIcon}>
+                <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
+              </View>
+              <Text style={dynamicStyles.quickDateActionText}>Go to Yesterday</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={dynamicStyles.quickDateActionItem}
+              onPress={() => handleQuickDateAction('nextWeek')}
+            >
+              <View style={dynamicStyles.quickDateActionIcon}>
+                <Ionicons name="play-forward" size={20} color={theme.colors.text} />
+              </View>
+              <Text style={dynamicStyles.quickDateActionText}>Next Week</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={dynamicStyles.quickDateActionItem}
+              onPress={() => handleQuickDateAction('previousWeek')}
+            >
+              <View style={dynamicStyles.quickDateActionIcon}>
+                <Ionicons name="play-back" size={20} color={theme.colors.text} />
+              </View>
+              <Text style={dynamicStyles.quickDateActionText}>Previous Week</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
