@@ -7,18 +7,20 @@ import { persistStore, persistReducer } from 'redux-persist';
 import taskReducer from './slices/taskSlice';
 import habitReducer from './slices/habitSlice';
 import settingsReducer from './slices/settingsSlice';
+import categoryReducer from './slices/categorySlice';
 
 // Configure persistence
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['tasks', 'habits', 'settings'], // We don't persist timer state
+  whitelist: ['tasks', 'habits', 'settings', 'categories'], // We don't persist timer state
 };
 
 const rootReducer = combineReducers({
   tasks: taskReducer,
   habits: habitReducer,
   settings: settingsReducer,
+  categories: categoryReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

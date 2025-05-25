@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppSelector, useAppDispatch } from '../../store';
 import {
@@ -471,6 +472,23 @@ export const SettingsScreen: React.FC = () => {
             </View>
           </>
         )}
+      </Card>
+      
+      {/* Categories */}
+      <Text style={dynamicStyles.sectionTitle}>Categories</Text>
+      <Card style={dynamicStyles.card}>
+        <TouchableOpacity
+          style={dynamicStyles.settingRow}
+          onPress={() => navigation.navigate('Categories' as never)}
+        >
+          <View>
+            <Text style={dynamicStyles.settingLabel}>Manage Categories</Text>
+            <Text style={dynamicStyles.settingDescription}>
+              Create and customize categories for tasks and habits
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.colors.text} />
+        </TouchableOpacity>
       </Card>
       
       {/* Calendar Integration */}
